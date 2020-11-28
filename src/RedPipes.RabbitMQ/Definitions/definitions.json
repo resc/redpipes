@@ -1,0 +1,300 @@
+{
+  "rabbit_version": "3.8.3",
+  "rabbitmq_version": "3.8.3",
+  "users": [
+    {
+      "name": "guest",
+      "password_hash": "EQY21c3tps1B5olgjMQyl8Y587BRvqtHEmek9urw5ACKLLI0",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": "administrator"
+    }
+  ],
+  "vhosts": [ { "name": "/" } ],
+  "permissions": [
+    {
+      "user": "guest",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "topic_permissions": [],
+  "parameters": [],
+  "global_parameters": [
+    {
+      "name": "cluster_name",
+      "value": "rabbit@rabbit"
+    },
+    {
+      "name": "internal_cluster_id",
+      "value": "rabbitmq-cluster-id-v120VakQidZTi38964RWOg"
+    }
+  ],
+  "policies": [],
+  "queues": [
+    {
+      "name": "GateController",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "PASS.DeadLetters",
+        "x-dead-letter-routing-key": "DeadLetters",
+        "x-max-length-bytes": 536870912
+      }
+    },
+    {
+      "name": "TicketPrinter",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "PASS.DeadLetters",
+        "x-dead-letter-routing-key": "DeadLetters",
+        "x-max-length-bytes": 536870912
+      }
+    },
+    {
+      "name": "MessageArchive.Firehose",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "PASS.DeadLetters",
+        "x-dead-letter-routing-key": "DeadLetters",
+        "x-max-length-bytes": 536870912
+      }
+    },
+    {
+      "name": "RemoteIo",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "PASS.DeadLetters",
+        "x-dead-letter-routing-key": "DeadLetters",
+        "x-max-length-bytes": 536870912
+      }
+    },
+    {
+      "name": "DeadLetters",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": { "x-max-length-bytes": 536870912 }
+    },
+    {
+      "name": "Monitor",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "PASS.DeadLetters",
+        "x-dead-letter-routing-key": "DeadLetters",
+        "x-max-length-bytes": 536870912
+      }
+    },
+    {
+      "name": "TestModule",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "PASS.DeadLetters",
+        "x-dead-letter-routing-key": "DeadLetters",
+        "x-max-length-bytes": 536870912
+      }
+    },
+    {
+      "name": "Scheduler",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "PASS.DeadLetters",
+        "x-dead-letter-routing-key": "DeadLetters",
+        "x-max-length-bytes": 536870912
+      }
+    },
+    {
+      "name": "MessageArchive",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "PASS.DeadLetters",
+        "x-dead-letter-routing-key": "DeadLetters",
+        "x-max-length-bytes": 536870912
+      }
+    },
+    {
+      "name": "Settings",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "PASS.DeadLetters",
+        "x-dead-letter-routing-key": "DeadLetters",
+        "x-max-length-bytes": 536870912
+      }
+    },
+    {
+      "name": "MessageHandler",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "PASS.DeadLetters",
+        "x-dead-letter-routing-key": "DeadLetters",
+        "x-max-length-bytes": 536870912
+      }
+    }
+  ],
+  "exchanges": [
+    {
+      "name": "PASS.Modules",
+      "vhost": "/",
+      "type": "headers",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "PASS.DeadLetters",
+      "vhost": "/",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "PASS.Instances",
+      "vhost": "/",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    }
+  ],
+  "bindings": [
+    {
+      "source": "PASS.DeadLetters",
+      "vhost": "/",
+      "destination": "DeadLetters",
+      "destination_type": "queue",
+      "routing_key": "DeadLetters",
+      "arguments": {}
+    },
+    {
+      "source": "PASS.Modules",
+      "vhost": "/",
+      "destination": "GateController",
+      "destination_type": "queue",
+      "routing_key": "",
+      "arguments": {
+        "Receiver": "GateController",
+        "x-match": "all"
+      }
+    },
+    {
+      "source": "PASS.Modules",
+      "vhost": "/",
+      "destination": "MessageArchive",
+      "destination_type": "queue",
+      "routing_key": "",
+      "arguments": {
+        "Receiver": "MessageArchive",
+        "x-match": "all"
+      }
+    },
+    {
+      "source": "PASS.Modules",
+      "vhost": "/",
+      "destination": "MessageArchive.Firehose",
+      "destination_type": "queue",
+      "routing_key": "",
+      "arguments": { "x-match": "all" }
+    },
+    {
+      "source": "PASS.Modules",
+      "vhost": "/",
+      "destination": "MessageHandler",
+      "destination_type": "queue",
+      "routing_key": "",
+      "arguments": {
+        "Receiver": "MessageHandler",
+        "x-match": "all"
+      }
+    },
+    {
+      "source": "PASS.Modules",
+      "vhost": "/",
+      "destination": "Monitor",
+      "destination_type": "queue",
+      "routing_key": "",
+      "arguments": {
+        "Receiver": "Monitor",
+        "x-match": "all"
+      }
+    },
+    {
+      "source": "PASS.Modules",
+      "vhost": "/",
+      "destination": "RemoteIo",
+      "destination_type": "queue",
+      "routing_key": "",
+      "arguments": {
+        "Receiver": "RemoteIo",
+        "x-match": "all"
+      }
+    },
+    {
+      "source": "PASS.Modules",
+      "vhost": "/",
+      "destination": "Scheduler",
+      "destination_type": "queue",
+      "routing_key": "",
+      "arguments": {
+        "Receiver": "Scheduler",
+        "x-match": "all"
+      }
+    },
+    {
+      "source": "PASS.Modules",
+      "vhost": "/",
+      "destination": "Settings",
+      "destination_type": "queue",
+      "routing_key": "",
+      "arguments": {
+        "Receiver": "Settings",
+        "x-match": "all"
+      }
+    },
+    {
+      "source": "PASS.Modules",
+      "vhost": "/",
+      "destination": "TestModule",
+      "destination_type": "queue",
+      "routing_key": "",
+      "arguments": {
+        "Receiver": "TestModule",
+        "x-match": "all"
+      }
+    },
+    {
+      "source": "PASS.Modules",
+      "vhost": "/",
+      "destination": "TicketPrinter",
+      "destination_type": "queue",
+      "routing_key": "",
+      "arguments": {
+        "Receiver": "TicketPrinter",
+        "x-match": "all"
+      }
+    }
+  ]
+}
