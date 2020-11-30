@@ -16,7 +16,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\examples\Examples\Examples.csproj" />
     <ProjectReference Include="..\..\src\RedPipes.Context\RedPipes.csproj" />
+    <ProjectReference Include="..\..\src\RedPipes.Policies\RedPipes.Policies.csproj" />
+    <ProjectReference Include="..\..\src\RedPipes.RabbitMQ\RedPipes.RabbitMQ.csproj" />
     <ProjectReference Include="..\..\src\RedPipes.Telementry\RedPipes.Telemetry.csproj" />
   </ItemGroup>
 

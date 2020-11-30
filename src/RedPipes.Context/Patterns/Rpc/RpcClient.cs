@@ -48,8 +48,8 @@ namespace RedPipes.Patterns.Rpc
         {
             if (onResponse == null) throw new ArgumentNullException(nameof(onResponse));
 
-            IPipe<TResponse> requestPipe = new Execute.Pipe<TResponse>(onResponse, NullPipe<TResponse>.Instance);
-            IPipe<Exception> errorPipe = new Execute.Pipe<Exception>(onError, NullPipe<Exception>.Instance);
+            IPipe<TResponse> requestPipe = new Execute.Pipe<TResponse>(onResponse, new NullPipe<TResponse>());
+            IPipe<Exception> errorPipe = new Execute.Pipe<Exception>(onError, new NullPipe<Exception>());
             await Call(ctx, request, requestPipe, errorPipe);
         }
 

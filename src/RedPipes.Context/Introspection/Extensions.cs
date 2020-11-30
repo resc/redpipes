@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using RedPipes.Configuration.Visualization;
 
 namespace RedPipes.Introspection
 {
@@ -11,7 +13,15 @@ namespace RedPipes.Introspection
         public static string DumpPipeStructure(this IPipe pipe)
         {
             var scope = new Scope();
-            DumpPipeStructure(pipe, scope);
+
+            var g = new DgmlGraph<IPipe>();
+            pipe.Accept(g);
+
+            var rootNode = g.GetOrAddNode(pipe);
+
+
+
+            DumpPipeStructure(rootNode, scope, new HashSet<INode<IPipe>>());
             var opts = new JsonSerializerOptions
             {
                 WriteIndented = true,
@@ -20,17 +30,29 @@ namespace RedPipes.Introspection
             return JsonSerializer.Serialize(scope, opts);
         }
 
-       
-        private static void DumpPipeStructure(IPipe pipe, IScope scope)
-        {
-            // add system defined attrs last, so we overwrite them.
-            scope.Attr("__type", pipe.GetType().CSharpName());
 
-            if (pipe is IInspectable inspectable)
+        private static void DumpPipeStructure(INode<IPipe> n, IScope scope, HashSet<INode<IPipe>> visited)
+        {
+            if (!visited.Add(n))
+            {
+                return;
+            }
+
+            // add system defined attrs last, so we overwrite them.
+            foreach (var kv in n.Labels)
+                scope.Attr(kv.Key, kv.Value);
+
+            if (n.Item is IInspectable inspectable)
                 inspectable.Inspect(scope);
-            
-            foreach (var (childName, child) in pipe.Next())
-                DumpPipeStructure(child, scope.Scope(childName));
+
+            scope.Attr("__type", n.Item.GetType().CSharpName());
+
+
+            foreach (var e in n.OutEdges.OrderBy(x => x.Id))
+            {
+                var name = e.Labels.GetValueOrDefault(EdgeLabels.Label, "next").ToString();
+                DumpPipeStructure(e.Target, scope.Scope(name) ,visited);
+            }
 
         }
 

@@ -1,15 +1,16 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using RedPipes.Configuration.Visualization;
 
 namespace RedPipes.Configuration
 {
-
+    /// <summary> provides the execute func extensions </summary>
     public static class Execute
     {
-        /// <summary> Func corresponds with <see cref="IPipe{T}.Execute"/> method </summary>
+        /// <summary> <see cref="Func{T}"/> corresponds with <see cref="IPipe{T}.Execute"/> method </summary>
         public delegate void Func<in T>(IContext ctx, T value);
 
-        /// <summary> ExecuteAsyncFunc corresponds with <see cref="IPipe{T}.Execute"/> method </summary>
+        /// <summary> <see cref="AsyncFunc{T}"/> corresponds with <see cref="IPipe{T}.Execute"/> method </summary>
         public delegate Task AsyncFunc<in T>(IContext ctx, T value);
 
         /// <summary>
@@ -67,9 +68,11 @@ namespace RedPipes.Configuration
                 await _next.Execute(ctx, value);
             }
 
-            public IEnumerable<(string, IPipe)> Next()
+            public void Accept(IGraphBuilder<IPipe> visitor)
             {
-                yield return (nameof(_next), _next);
+                visitor.GetOrAddNode(this, (NodeLabels.Label, $"Execute ({nameof(IContext)} ctx, {typeof(T).GetCSharpName()} value) => {{ ... }}"));
+                if (visitor.AddEdge(this, _next, (EdgeLabels.Label, "next")))
+                    _next.Accept(visitor);
             }
         }
     }

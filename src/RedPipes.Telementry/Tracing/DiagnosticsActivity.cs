@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using JetBrains.Annotations;
 using OpenTelemetry.Trace;
 using RedPipes.Configuration;
+using RedPipes.Configuration.Visualization;
 
 namespace RedPipes.Telemetry.Tracing
 {
@@ -102,9 +103,18 @@ namespace RedPipes.Telemetry.Tracing
                 }
             }
 
-            public IEnumerable<(string, IPipe)> Next()
+            public void Accept(IGraphBuilder<IPipe> visitor)
             {
-                yield return (nameof(_next), _next);
+                visitor.GetOrAddNode(this
+                    , (NodeLabels.Label, $"Trace activity '{_name}' ({_kind})")
+                    , ("DiagnosticsName", _name)
+                    , ("DiagnosticsKind", _kind)
+                    , ("DiagnosticsSource", $"{_source.Name} {_source.Version}"));
+
+                if (visitor.AddEdge(this, _next, (EdgeLabels.Label, "next")))
+                {
+                    _next.Accept(visitor);
+                }
             }
         }
     }

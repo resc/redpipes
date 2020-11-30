@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using RedPipes.Configuration;
+using RedPipes.Configuration.Visualization;
 
 namespace RedPipes.Patterns.Rpc
 {
@@ -78,7 +79,7 @@ namespace RedPipes.Patterns.Rpc
         private static async Task<IPipe<ListResponse>> GetResponseHandler()
         {
             return await  Pipe
-                    .Build.For<ListResponse>().Transform().Use((responseCtx, response) => (responseCtx, response.ToString()))
+                    .Builder.For<ListResponse>().Transform().Use((responseCtx, response) => (responseCtx, response.ToString()))
                     .Use(async (responseCtx, response) =>
                     {
                         // be careful to not use ctx here, or any other captures.
@@ -190,10 +191,10 @@ namespace RedPipes.Patterns.Rpc
                 return $"{nameof(List)}: {s}";
             }
         }
-  
-        public IEnumerable<(string, IPipe)> Next()
+
+        public void Accept(IGraphBuilder<IPipe> visitor)
         {
-            yield break;
+            
         }
     }
 }

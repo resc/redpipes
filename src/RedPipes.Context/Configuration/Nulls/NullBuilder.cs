@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using RedPipes.Configuration.Visualization;
 
 namespace RedPipes.Configuration.Nulls
 {
@@ -14,6 +15,11 @@ namespace RedPipes.Configuration.Nulls
         public Task<IPipe<T>> Build(IPipe<T> next)
         {
             return Task.FromResult(next);
-        } 
+        }
+
+        public override void Accept(IGraphBuilder<IBuilder> visitor, IBuilder next)
+        {
+            next?.Accept(visitor, null);
+        }
     }
 }

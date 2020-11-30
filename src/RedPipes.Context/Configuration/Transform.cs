@@ -1,77 +1,61 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using RedPipes.Configuration.Visualization;
 
 namespace RedPipes.Configuration
 {
     public static class Transform
     {
+
+        /// <summary> The synchronous transformation function,
+        /// transforms the <paramref name="ctx"/> and <paramref name="value"/> for the next pipe stage </summary>
         public delegate (IContext, TOut) Func<in TIn, TOut>(IContext ctx, TIn value);
 
+        /// <summary> The async transformation function,
+        /// transforms the <paramref name="ctx"/> and <paramref name="value"/> for the next pipe stage </summary>
         public delegate Task<(IContext, TOut)> AsyncFunc<in TIn, TOut>(IContext ctx, TIn value);
 
-        public static RedPipes.IBuilder<TIn, TTo> Use<TIn, TFrom, TTo>(this IBuilder<TIn, TFrom> builder, Func<TFrom, TTo> transform)
+        /// <summary> Applies a transformation function to the pipe </summary>
+        public static IBuilder<TIn, TTo> Use<TIn, TFrom, TTo>(this ITransformBuilder<TIn, TFrom> transformBuilder, Func<TFrom, TTo> transform)
         {
-            return builder.Use((ctx, value) => Task.FromResult(transform(ctx, value)));
+            return transformBuilder.Use((ctx, value) => Task.FromResult(transform(ctx, value)));
         }
 
-        public static RedPipes.IBuilder<TIn, TTo> Use<TIn, TFrom, TTo>(this IBuilder<TIn, TFrom> builder, System.Func<TFrom, TTo> transform)
+        /// <summary> Applies a transformation function to the pipe </summary>
+        public static IBuilder<TIn, TTo> Use<TIn, TFrom, TTo>(this ITransformBuilder<TIn, TFrom> transformBuilder, System.Func<TFrom, TTo> transform)
         {
-            return builder.Use((ctx, value) => Task.FromResult((ctx, transform(value))));
+            return transformBuilder.Use((ctx, value) => Task.FromResult((ctx, transform(value))));
         }
 
-        public static RedPipes.IBuilder<TIn, TTo> Use<TIn, TFrom, TTo>(this IBuilder<TIn, TFrom> builder, AsyncFunc<TFrom, TTo> transform)
+        /// <summary> Applies a transformation function to the pipe </summary>
+        public static IBuilder<TIn, TTo> Use<TIn, TFrom, TTo>(this ITransformBuilder<TIn, TFrom> transformBuilder, AsyncFunc<TFrom, TTo> transform)
         {
-            return builder.Use(new MiddleWare<TFrom, TTo>(transform));
+            return transformBuilder.Use(new AsyncFuncBuilder<TFrom, TTo>(transform));
         }
 
-        /// <summary> This is an intermediate step to make the fluent api nicer to use, please do not stop here, but call <see cref="Use{TTo}"/> </summary>
-        public interface IBuilder<TIn, TFrom>
-        {
-            RedPipes.IBuilder<TIn, TTo> Use<TTo>(RedPipes.IBuilder<TFrom, TTo> transform);
-        }
-
-        internal class Builder<TIn, TFrom> : IBuilder<TIn, TFrom>
-        {
-            private readonly RedPipes.IBuilder<TIn, TFrom> _input;
-
-            public Builder([NotNull] RedPipes.IBuilder<TIn, TFrom> input)
-            {
-                _input = input ?? throw new ArgumentNullException(nameof(input));
-            }
-
-            public RedPipes.IBuilder<TIn, TTo> Use<TTo>([NotNull] RedPipes.IBuilder<TFrom, TTo> transform)
-            {
-                if (transform == null)
-                    throw new ArgumentNullException(nameof(transform));
-
-                return new TransformBuilder<TIn, TFrom, TTo>(_input, transform);
-            }
-        }
-
-        class MiddleWare<TIn, TOut> : Builder, RedPipes.IBuilder<TIn, TOut>
+        class AsyncFuncBuilder<TIn, TOut> : Builder, IBuilder<TIn, TOut>
         {
             private readonly AsyncFunc<TIn, TOut> _transform;
 
-            public MiddleWare([NotNull] AsyncFunc<TIn, TOut> transform)
+            public AsyncFuncBuilder([NotNull] AsyncFunc<TIn, TOut> transform)
             {
                 _transform = transform;
             }
 
             public Task<IPipe<TIn>> Build(IPipe<TOut> next)
             {
-                IPipe<TIn> pipe = new Pipe<TIn, TOut>(_transform, next);
+                IPipe<TIn> pipe = new AsyncFuncPipe<TIn, TOut>(_transform, next);
                 return Task.FromResult(pipe);
             }
         }
 
-        class Pipe<TIn, TOut> : IPipe<TIn>
+        class AsyncFuncPipe<TIn, TOut> : IPipe<TIn>
         {
             private readonly AsyncFunc<TIn, TOut> _transform;
             private readonly IPipe<TOut> _next;
 
-            public Pipe(AsyncFunc<TIn, TOut> transform, IPipe<TOut> next)
+            public AsyncFuncPipe(AsyncFunc<TIn, TOut> transform, IPipe<TOut> next)
             {
                 _transform = transform;
                 _next = next;
@@ -83,9 +67,12 @@ namespace RedPipes.Configuration
                 await _next.Execute(ctx1, value1);
             }
 
-            public IEnumerable<(string, IPipe)> Next()
+            public void Accept(IGraphBuilder<IPipe> visitor)
             {
-                yield return (nameof(_next), _next);
+                var label = $"Transform ({nameof(IContext)}, {typeof(TIn).GetCSharpName()}) => ({nameof(IContext)}, {typeof(TOut).GetCSharpName()})";
+                visitor.GetOrAddNode(this, (NodeLabels.Label, label));
+                if (visitor.AddEdge(this, _next, (EdgeLabels.Label, "next")))
+                    _next.Accept(visitor);
             }
         }
     }

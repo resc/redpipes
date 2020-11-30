@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RedPipes.Telemetry.Tracing;
 using RedPipes.Configuration;
+using RedPipes.Configuration.Visualization;
 
 namespace RedPipes
 {
@@ -23,7 +24,7 @@ namespace RedPipes
             });
             var id = Guid.NewGuid();
             var builder = Pipe
-                .Build.For<int>()
+                .Builder.For<int>()
                 .UseDiagnosticsActivity("TestActivity").Transform().Use((ctx, data) => (ctx, data.ToString()));
 
             var output = new Output();
@@ -49,9 +50,8 @@ namespace RedPipes
 
             public IContext Context { get; private set; }
 
-            public IEnumerable<(string, IPipe)> Next()
+            public void Accept(IGraphBuilder<IPipe> visitor)
             {
-                yield break;
             }
         }
 

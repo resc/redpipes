@@ -15,4 +15,8 @@
     <ProjectReference Include="..\..\src\RedPipes.Telementry\RedPipes.Telemetry.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Configuration\Ideas\" />
+  </ItemGroup>
+
 </Project>

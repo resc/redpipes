@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using RedPipes.Configuration;
+using RedPipes.Configuration.Visualization;
 using RedPipes.Patterns.Auth.Policies;
 
 namespace RedPipes.Patterns.Auth
@@ -30,9 +31,9 @@ namespace RedPipes.Patterns.Auth
         class Builder<T> : Builder, IBuilder<T, T>
         {
             private readonly Policy<T> _policy;
-            private readonly IBuilder<T,T> _deny;
+            private readonly IBuilder<T, T> _deny;
 
-            public Builder(Policy<T> policy, IBuilder<T,T> deny)
+            public Builder(Policy<T> policy, IBuilder<T, T> deny)
             {
                 _policy = policy;
                 _deny = deny;
@@ -45,10 +46,11 @@ namespace RedPipes.Patterns.Auth
                 return pipe;
             }
 
-            public override void Accept(IBuilderVisitor visitor, IBuilder next)
+            public override void Accept(IGraphBuilder<IBuilder> visitor, IBuilder next)
             {
-                visitor.Edge(this, next);
-                visitor.Branch(this, _deny, null);
+                visitor.AddEdge(this, next, (EdgeLabels.Label, "accept"));
+                visitor.AddEdge(this, _deny, (EdgeLabels.Label, "deny"));
+                _deny.Accept(visitor, null);
             }
         }
 
@@ -56,27 +58,31 @@ namespace RedPipes.Patterns.Auth
         {
             private readonly Policy<T> _policy;
             private readonly IPipe<T> _deny;
-            private readonly IPipe<T> _next;
+            private readonly IPipe<T> _accept;
 
-            public Pipe(Policy<T> policy, IPipe<T> deny, IPipe<T> next)
+            public Pipe(Policy<T> policy, IPipe<T> deny, IPipe<T> accept)
             {
                 _policy = policy;
                 _deny = deny;
-                _next = next;
+                _accept = accept;
             }
 
             public async Task Execute(IContext ctx, T value)
             {
                 var result = _policy.Evaluate(ctx, value);
                 if (Decision.Permit == result.Decision)
-                    await _next.Execute(ctx, value);
+                    await _accept.Execute(ctx, value);
                 else
                     await _deny.Execute(ctx, value);
             }
 
-            public IEnumerable<(string, IPipe)> Next()
+            public void Accept(IGraphBuilder<IPipe> visitor)
             {
-                yield return (nameof(_deny), _deny);
+                if (visitor.AddEdge(this, _accept, (EdgeLabels.Label, "accept")))
+                    _accept.Accept(visitor);
+
+                if (visitor.AddEdge(this, _deny, (EdgeLabels.Label, "deny")))
+                    _deny.Accept(visitor);
             }
         }
     }

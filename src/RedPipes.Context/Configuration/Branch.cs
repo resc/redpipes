@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using RedPipes.Configuration.Visualization;
 
 namespace RedPipes.Configuration
 {
     public static class Branch
     {
-         /// <summary> Execute extra steps in the pipe,if the condition is true, and continue executing the pipe </summary>
+        /// <summary> Execute extra steps in the pipe,if the condition is true, and continue executing the pipe </summary>
         public static IBuilder<TIn, TOut> UseBranch<TIn, TOut>(
             this IBuilder<TIn, TOut> builder,
             [NotNull] Func<IContext, TOut, bool> condition,
@@ -30,7 +31,7 @@ namespace RedPipes.Configuration
         public static IBuilder<TIn, TOut> UseBranch<TIn, TOut>(
             this IBuilder<TIn, TOut> builder,
             [NotNull] Func<IContext, TOut, bool> condition,
-            [NotNull] Pipe.Func<TOut> trueBranch)
+            [NotNull] Pipe.PipeFunc<TOut> trueBranch)
         {
             if (condition == null)
             {
@@ -42,7 +43,7 @@ namespace RedPipes.Configuration
                 throw new ArgumentNullException(nameof(trueBranch));
             }
 
-            var trueBranchPipeBuilder = Pipe.Build.For<TOut>().Use(trueBranch);
+            var trueBranchPipeBuilder = Pipe.Builder.For<TOut>().Use(trueBranch);
             return builder.Use(new Builder<TOut>(condition, trueBranchPipeBuilder, isBranch: true));
         }
 
@@ -69,7 +70,7 @@ namespace RedPipes.Configuration
         public static IBuilder<TIn, TOut> UseAlternate<TIn, TOut>(
             this IBuilder<TIn, TOut> builder,
             [NotNull] Func<IContext, TOut, bool> condition,
-            [NotNull] Pipe.Func<TOut> trueBranch)
+            [NotNull] Pipe.PipeFunc<TOut> trueBranch)
         {
             if (condition == null)
             {
@@ -81,12 +82,12 @@ namespace RedPipes.Configuration
                 throw new ArgumentNullException(nameof(trueBranch));
             }
 
-            var trueBranchPipeBuilder = Pipe.Build.For<TOut>().Use(trueBranch);
+            var trueBranchPipeBuilder = Pipe.Builder.For<TOut>().Use(trueBranch);
             return builder.Use(new Builder<TOut>(condition, trueBranchPipeBuilder, isBranch: false));
         }
 
 
-        class Builder<T> :Builder,  IBuilder<T, T>
+        class Builder<T> : Builder, IBuilder<T, T>
         {
             private readonly Func<IContext, T, bool> _condition;
             private readonly IBuilder<T, T> _trueBranch;
@@ -112,10 +113,11 @@ namespace RedPipes.Configuration
                 return pipe;
             }
 
-            public override void Accept(IBuilderVisitor visitor, IBuilder next)
+            public override void Accept(IGraphBuilder<IBuilder> visitor, IBuilder next)
             {
-                visitor.Edge(this, next);
-                visitor.Branch(this, _trueBranch, _isBranch ? next : null);
+                visitor.AddEdge(this, next, (EdgeLabels.Label, "next"));
+                visitor.AddEdge(this, _trueBranch, (EdgeLabels.Label, "trueBranch"));
+                _trueBranch.Accept(visitor, next);
             }
         }
 
@@ -144,10 +146,14 @@ namespace RedPipes.Configuration
                 }
             }
 
-            public IEnumerable<(string, IPipe)> Next()
+            public void Accept(IGraphBuilder<IPipe> visitor)
             {
-                yield return (nameof(_trueBranch), _trueBranch);
-                yield return (nameof(_falseBranch), _falseBranch);
+                visitor.GetOrAddNode(this, (NodeLabels.Label, "Condition"));
+                if (visitor.AddEdge(this, _trueBranch, (EdgeLabels.Label, "True")))
+                    _trueBranch.Accept(visitor);
+
+                if (visitor.AddEdge(this, _falseBranch, (EdgeLabels.Label, "False")))
+                    _falseBranch.Accept(visitor);
             }
         }
     }

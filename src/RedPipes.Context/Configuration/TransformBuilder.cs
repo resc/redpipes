@@ -1,30 +1,23 @@
 ﻿using System;
-using System.Threading.Tasks;
 using JetBrains.Annotations;
 
 namespace RedPipes.Configuration
 {
-    class TransformBuilder<TIn, T, TOut> : IBuilder<TIn, TOut>
+    internal class TransformBuilder<TIn, TFrom> : ITransformBuilder<TIn, TFrom>
     {
-        private readonly IBuilder<TIn, T> _in;
-        private readonly IBuilder<T, TOut> _out;
+        private readonly IBuilder<TIn, TFrom> _input;
 
-        public TransformBuilder([NotNull] IBuilder<TIn, T> input, [NotNull] IBuilder<T, TOut> output)
+        public TransformBuilder([NotNull] IBuilder<TIn, TFrom> input)
         {
-            _in = input ?? throw new ArgumentNullException(nameof(input));
-            _out = output ?? throw new ArgumentNullException(nameof(output));
+            _input = input ?? throw new ArgumentNullException(nameof(input));
         }
 
-        public async Task<IPipe<TIn>> Build(IPipe<TOut> next)
+        public IBuilder<TIn, TTo> Use<TTo>([NotNull] IBuilder<TFrom, TTo> transform)
         {
-            var output = await _out.Build(next);
-            return await _in.Build(output);
-        }
+            if (transform == null)
+                throw new ArgumentNullException(nameof(transform));
 
-        public void Accept(IBuilderVisitor visitor, IBuilder next)
-        {
-            _in.Accept(visitor, _out);
-            _out.Accept(visitor, next);
+            return new Builder<TIn, TFrom, TTo>(_input, transform);
         }
     }
 }

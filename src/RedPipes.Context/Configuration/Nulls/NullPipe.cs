@@ -1,23 +1,21 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using RedPipes.Configuration.Visualization;
 
 namespace RedPipes.Configuration.Nulls
 {
     /// <summary> A pipe that doesn't do anything </summary>
     class NullPipe<T> : IPipe<T>
     {
-        public static IPipe<T> Instance { get; } = new NullPipe<T>();
-
-        private NullPipe() { }
+        public NullPipe() { }
 
         public Task Execute(IContext ctx, T value)
         {
             return Task.CompletedTask;
         }
-
-        public IEnumerable<(string, IPipe)> Next()
+        
+        public void Accept(IGraphBuilder<IPipe> visitor)
         {
-            yield break;
+            visitor.GetOrAddNode(this, (NodeLabels.Label, "End"));
         }
     }
 }

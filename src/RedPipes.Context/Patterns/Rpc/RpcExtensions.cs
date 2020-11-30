@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using RedPipes.Configuration;
+using RedPipes.Configuration.Visualization;
 
 namespace RedPipes.Patterns.Rpc
 {
@@ -76,13 +77,13 @@ namespace RedPipes.Patterns.Rpc
 
             public IBuilder<TIn, TResponse> OnRpcError<TError>(Func<IBuilder<TError, TError>, IBuilder<TError, TError>> onErrorPipeBuilder) where TError : Exception
             {
-                var errorPipeBuilder = onErrorPipeBuilder(Pipe.Build.For<TError>());
+                var errorPipeBuilder = onErrorPipeBuilder(Pipe.Builder.For<TError>());
                 return _builder.Transform().Use(new Builder<TRequest, TResponse, TError>(_provider, _options.Clone(), _responsePipeBuilder, errorPipeBuilder));
             }
 
             IOnRpcError<TIn, TR> IOnRpcResponse<TIn, TRequest>.OnRpcResponse<TR>(Func<IBuilder<TR, TR>, IBuilder<TR, TR>> onResponse)
             {
-                var responsePipeBuilder = onResponse(Pipe.Build.For<TR>());
+                var responsePipeBuilder = onResponse(Pipe.Builder.For<TR>());
                 return new RpcPipeBuilder<TIn, TRequest, TR>(_builder, _provider, _options, responsePipeBuilder);
             }
         }
@@ -94,7 +95,7 @@ namespace RedPipes.Patterns.Rpc
             private readonly IBuilder<TResponse, TResponse> _onResponse;
             private readonly IBuilder<TException, TException> _onException;
 
-            public Builder(IRpcProvider rpc, RpcOptions options, IBuilder<TResponse, TResponse> onResponse, IBuilder<TException,TException> onException)
+            public Builder(IRpcProvider rpc, RpcOptions options, IBuilder<TResponse, TResponse> onResponse, IBuilder<TException, TException> onException)
             {
                 _rpc = rpc;
                 _options = options;
@@ -110,10 +111,12 @@ namespace RedPipes.Patterns.Rpc
                 return pipe;
             }
 
-            public override void Accept(IBuilderVisitor visitor, IBuilder next)
+            public override void Accept(IGraphBuilder<IBuilder> visitor, IBuilder next)
             {
-                visitor.Branch(this, _onResponse, next);
-                visitor.Branch(this, _onException, null);
+                visitor.AddEdge(this, _onResponse, (EdgeLabels.Label, "onResponse"));
+                visitor.AddEdge(this, _onException, (EdgeLabels.Label, "onException"));
+                _onResponse.Accept(visitor, next);
+                _onException.Accept(visitor, null);
             }
         }
 
@@ -156,10 +159,16 @@ namespace RedPipes.Patterns.Rpc
                 await _onResponse.Execute(responseCtx, response);
             }
 
-            public IEnumerable<(string, IPipe)> Next()
+
+            public void Accept(IGraphBuilder<IPipe> visitor)
             {
-                yield return (nameof(_onResponse), _onResponse);
-                yield return (nameof(_onException), _onException);
+                var label = $"Remote Procedure Call ({typeof(TRequest).GetCSharpName()} request) => ({typeof(TResponse).GetCSharpName()} response)\nendpoint: {_options.EndPoint}";
+                visitor.GetOrAddNode(this, (NodeLabels.Label, label));
+                if (visitor.AddEdge(this, _onResponse, (EdgeLabels.Label, "onResponse")))
+                    _onResponse.Accept(visitor);
+
+                if (visitor.AddEdge(this, _onException, (EdgeLabels.Label, "onException")))
+                    _onException.Accept(visitor);
             }
         }
     }

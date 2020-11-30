@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using OpenTelemetry.Trace;
 using RabbitMQ.Client;
 using RedPipes.Configuration;
+using RedPipes.Configuration.Visualization;
 using RedPipes.Telemetry.Tracing;
 
 namespace RedPipes.RabbitMQ
@@ -19,7 +20,7 @@ namespace RedPipes.RabbitMQ
             return builderProviderFactory.For(new Builder());
         }
 
-        sealed class Builder : RedPipes.Builder, IBuilder<RabbitMqConfig, Receive>
+        sealed class Builder : Configuration.Builder, IBuilder<RabbitMqConfig, Receive>
         {
             public Task<IPipe<RabbitMqConfig>> Build(IPipe<Receive> next)
             {
@@ -161,10 +162,11 @@ namespace RedPipes.RabbitMQ
             {
                 await base.HandleModelShutdown(model, reason).ConfigureAwait(false);
             }
-
-            public IEnumerable<(string, IPipe)> Next()
+            
+            public void Accept(IGraphBuilder<IPipe> visitor)
             {
-                yield return (nameof(_next), _next);
+                if (visitor.AddEdge(this, _next, (EdgeLabels.Label, "next")))
+                    _next.Accept(visitor);
             }
         }
     }

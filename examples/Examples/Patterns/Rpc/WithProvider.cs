@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using RedPipes.Configuration;
+using RedPipes.Configuration.Visualization;
 
 namespace RedPipes.Patterns.Rpc
 {
@@ -15,7 +16,7 @@ namespace RedPipes.Patterns.Rpc
         public async Task Execute(IContext ctx, string[] value)
         {
             var requestPipe = await Pipe
-                    .Build.For<string[]>()
+                    .Builder.For<string[]>()
                     .WithRpcProvider(this, new RpcOptions { Timeout = TimeSpan.FromSeconds(5) })
                     .OnRpcResponse<string>(pipe => pipe
                         .Use(async (c, response) => await Console.Out.WriteLineAsync("Jay! I got a response!")))
@@ -77,9 +78,9 @@ namespace RedPipes.Patterns.Rpc
             return (ctx, content);
         }
 
-        public IEnumerable<(string, IPipe)> Next()
+        public void Accept(IGraphBuilder<IPipe> visitor)
         {
-            yield break;
+            
         }
     }
 }

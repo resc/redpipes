@@ -5,6 +5,7 @@ using JetBrains.Annotations;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using RedPipes.Configuration;
+using RedPipes.Configuration.Visualization;
 
 namespace RedPipes.Telemetry.Metrics
 {
@@ -88,9 +89,11 @@ namespace RedPipes.Telemetry.Metrics
                     _duration.Add(Tracer.CurrentSpan.Context, 1);
                 }
             }
-            public IEnumerable<(string, IPipe)> Next()
+            
+            public void Accept(IGraphBuilder<IPipe> visitor)
             {
-                yield return (nameof(_next), _next);
+                if (visitor.AddEdge(this, _next, (EdgeLabels.Label, "next")))
+                    _next.Accept(visitor);
             }
         }
     }

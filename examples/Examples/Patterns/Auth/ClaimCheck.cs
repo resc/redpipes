@@ -5,7 +5,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using RedPipes.Configuration;
-using RedPipes.Telemetry.Metrics;
+using RedPipes.Configuration.Visualization;
 
 namespace RedPipes.Patterns.Auth
 {
@@ -18,15 +18,18 @@ namespace RedPipes.Patterns.Auth
         public async Task Execute(IContext c, string[] args)
         {
             var accessDenied = Pipe
-                .Build.For<Request>()
+                .Builder.For<Request>()
                 .Use(AccessDenied);
 
-            var requestPipe = await Pipe
-                    .Build.For<string[]>()
-                    .Transform().Use(ArgsToRequest)
-                    .UsePrincipalProvider(BearerTokenPrincipalProvider)
-                    .UseAuthPolicy(p => p.HasRole("admin").And(p.IsAfter(startDate)), accessDenied)
-                    .Use(HandleRequest).Build();
+            var builder = Pipe
+                .Builder.For<string[]>()
+                .Transform().Use(ArgsToRequest)
+                .UsePrincipalProvider(BearerTokenPrincipalProvider)
+                .UseAuthPolicy(p => p.HasRole("admin").And(p.IsAfter(startDate)), accessDenied)
+                .Use(HandleRequest);
+
+          
+            var requestPipe = await builder.Build();
 
             await requestPipe.Execute(c, args);
         }
@@ -84,9 +87,9 @@ namespace RedPipes.Patterns.Auth
             public Dictionary<string, string> Headers { get; } = new Dictionary<string, string>();
         }
 
-        public IEnumerable<(string, IPipe)> Next()
+        public void Accept(IGraphBuilder<IPipe> visitor)
         {
-            yield break;
+            
         }
     }
 }

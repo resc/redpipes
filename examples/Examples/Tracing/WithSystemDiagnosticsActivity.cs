@@ -2,10 +2,13 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using RedPipes.Configuration;
+using RedPipes.Configuration.Visualization;
 using RedPipes.Patterns.Rpc;
 using RedPipes.Telemetry.Tracing;
 
@@ -37,15 +40,16 @@ namespace RedPipes.Tracing
             ActivitySource.AddActivityListener(listener);
 
             var rpc = await Pipe
-                    .Build.For<string[]>()
+                    .Builder.For<string[]>()
                     .UseDiagnosticsActivity("rpc.request", ActivityKind.Client, getTags: (c, args) => args.Select((a, i) => new KeyValuePair<string, object>($"arg{i}", a)))
                     .WithRpcProvider(this, new RpcOptions { Timeout = TimeSpan.FromSeconds(5) })
                     .OnRpcResponse<string>(pipe => pipe
-                        .UseDiagnosticsActivity("rpc.response"))
+                        .UseDiagnosticsActivity("rpc.response")
+                        .Use((_, rsp) => Console.WriteLine("Response received: {0}", string.Join("," ,rsp))))
                     .OnRpcError<Exception>(pipe => pipe
-                        .UseDiagnosticsActivity("rpc.error", getTags: GetExceptionTags))
-                    .Use((c, response) => throw new Exception("This exception was thrown to show uncaught exception event tracing"))
-                    .Build();
+                        .UseDiagnosticsActivity("rpc.error", getTags: GetExceptionTags)
+                        .Use((_, ex) => Console.WriteLine("Handled exception: {0}", ex.Message)))
+                    .Build(); 
 
             try
             {
@@ -144,11 +148,10 @@ namespace RedPipes.Tracing
             var content = await response.Content.ReadAsStringAsync();
             return (ctx, content);
         }
-        
 
-        public IEnumerable<(string, IPipe)> Next()
+        public void Accept(IGraphBuilder<IPipe> visitor)
         {
-            yield break;
+
         }
     }
 }
