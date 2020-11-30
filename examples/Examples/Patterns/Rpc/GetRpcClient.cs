@@ -80,7 +80,7 @@ namespace RedPipes.Patterns.Rpc
         {
             return await  Pipe
                     .Builder.For<ListResponse>().Transform().Use((responseCtx, response) => (responseCtx, response.ToString()))
-                    .Use(async (responseCtx, response) =>
+                    .UseAsync(async (responseCtx, response) =>
                     {
                         // be careful to not use ctx here, or any other captures.
                         // it's highly probable that will cause gnashing of teeth,

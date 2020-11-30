@@ -1,23 +1,54 @@
 ﻿using System;
+using System.Threading.Tasks;
 using JetBrains.Annotations;
 
 namespace RedPipes.Configuration
 {
-    internal class TransformBuilder<TIn, TFrom> : ITransformBuilder<TIn, TFrom>
+    internal class TransformBuilder<TIn, T> : ITransformBuilder<TIn, T>
     {
-        private readonly IBuilder<TIn, TFrom> _input;
+        private readonly IBuilder<TIn, T> _input;
 
-        public TransformBuilder([NotNull] IBuilder<TIn, TFrom> input)
+        public TransformBuilder([NotNull] IBuilder<TIn, T> input)
         {
             _input = input ?? throw new ArgumentNullException(nameof(input));
         }
 
-        public IBuilder<TIn, TTo> Use<TTo>([NotNull] IBuilder<TFrom, TTo> transform)
+        public IBuilder<TIn, TOut> Use<TOut>([NotNull] IBuilder<T, TOut> transform)
         {
             if (transform == null)
                 throw new ArgumentNullException(nameof(transform));
 
-            return new Builder<TIn, TFrom, TTo>(_input, transform);
+            return new Builder<TIn, T, TOut>(_input, transform);
+        }
+    }
+
+    internal class DelegateBuilder<TIn, TOut> : Builder, IBuilder<TIn, TOut>
+    {
+        private readonly Func<IPipe<TOut>, IPipe<TIn>> _build;
+
+        public DelegateBuilder(Func<IPipe<TOut>, IPipe<TIn>> build)
+        {
+            _build = build;
+        }
+
+        public Task<IPipe<TIn>> Build(IPipe<TOut> next)
+        {
+            return Task.FromResult(_build(next));
+        }
+    }
+
+    internal class AsyncDelegateBuilder<TIn, TOut> : Builder, IBuilder<TIn, TOut>
+    {
+        private readonly Func<IPipe<TOut>,Task< IPipe<TIn>>> _buildAsync;
+
+        public AsyncDelegateBuilder(Func<IPipe<TOut>, Task<IPipe<TIn>>> buildAsync)
+        {
+            _buildAsync = buildAsync;
+        }
+
+        public Task<IPipe<TIn>> Build(IPipe<TOut> next)
+        {
+            return _buildAsync(next);
         }
     }
 }

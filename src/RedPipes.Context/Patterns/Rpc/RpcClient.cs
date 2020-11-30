@@ -34,23 +34,21 @@ namespace RedPipes.Patterns.Rpc
             return response;
         }
 
-        public async Task Call<TRequest, TResponse>(IContext ctx, IRpc<TRequest, TResponse> rpc, Execute.AsyncFunc<TResponse> onResponse, Execute.AsyncFunc<Exception> onError) where TRequest : IRpc<TRequest, TResponse>
+        public async Task Call<TRequest, TResponse>(IContext ctx, TRequest request, [NotNull] Pipe.ExecuteAsync<TResponse> onResponse, Pipe.ExecuteAsync<Exception> onError = null)
         {
-            await Call(ctx, (TRequest)rpc, onResponse, onError);
+            var responseBuilder = Pipe.Builder.For<TResponse>().UseAsync(onResponse);
+            var errorBuilder = onError == null ? null : Pipe.Builder.For<Exception>().UseAsync(onError);
+            await Call(ctx, request, responseBuilder, errorBuilder);
         }
 
-        public async Task Call<TRequest, TResponse>(IContext ctx, IRpc<TRequest, TResponse> rpc, IPipe<TResponse> onResponse, IPipe<Exception> onError) where TRequest : IRpc<TRequest, TResponse>
+        public async Task Call<TRequest, TResponse>(IContext ctx, TRequest request, [NotNull] IBuilder<TResponse, TResponse> onResponse, IBuilder<Exception, Exception> onError = null)
         {
-            await Call(ctx, (TRequest)rpc, onResponse, onError);
-        }
+            if (onResponse == null)
+                throw new ArgumentNullException(nameof(onResponse));
 
-        public async Task Call<TRequest, TResponse>(IContext ctx, TRequest request, [NotNull] Execute.AsyncFunc<TResponse> onResponse, Execute.AsyncFunc<Exception> onError = null)
-        {
-            if (onResponse == null) throw new ArgumentNullException(nameof(onResponse));
-
-            IPipe<TResponse> requestPipe = new Execute.Pipe<TResponse>(onResponse, new NullPipe<TResponse>());
-            IPipe<Exception> errorPipe = new Execute.Pipe<Exception>(onError, new NullPipe<Exception>());
-            await Call(ctx, request, requestPipe, errorPipe);
+            var responsePipe = await onResponse.Build();
+            var errorPipe = onError == null ? new NullPipe<Exception>() : await onError.Build();
+            await Call(ctx, request, responsePipe, errorPipe);
         }
 
         public async Task Call<TRequest, TResponse>(IContext ctx, TRequest request, IPipe<TResponse> onResponse, IPipe<Exception> onError = null)

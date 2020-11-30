@@ -19,14 +19,14 @@ namespace RedPipes.Patterns.Auth
         {
             var accessDenied = Pipe
                 .Builder.For<Request>()
-                .Use(AccessDenied);
+                .UseAsync(AccessDenied);
 
             var builder = Pipe
                 .Builder.For<string[]>()
                 .Transform().Use(ArgsToRequest)
                 .UsePrincipalProvider(BearerTokenPrincipalProvider)
                 .UseAuthPolicy(p => p.HasRole("admin").And(p.IsAfter(startDate)), accessDenied)
-                .Use(HandleRequest);
+                .UseAsync(HandleRequest);
 
           
             var requestPipe = await builder.Build();
@@ -62,7 +62,7 @@ namespace RedPipes.Patterns.Auth
             return Task.FromResult(principal);
         }
 
-        private async Task AccessDenied(IContext ctx, Request value, Execute.AsyncFunc<Request> next)
+        private async Task AccessDenied(IContext ctx, Request value, Pipe.ExecuteAsync<Request> next)
         {
             var p = ctx.GetPrincipal();
             var role = p.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Role)?.Value ?? "?";

@@ -19,10 +19,10 @@ namespace RedPipes.Patterns.Rpc
                     .Builder.For<string[]>()
                     .WithRpcProvider(this, new RpcOptions { Timeout = TimeSpan.FromSeconds(5) })
                     .OnRpcResponse<string>(pipe => pipe
-                        .Use(async (c, response) => await Console.Out.WriteLineAsync("Jay! I got a response!")))
+                        .UseAsync(async (c, response) => await Console.Out.WriteLineAsync("Jay! I got a response!")))
                     .OnRpcError<Exception>(pipe => pipe
-                        .Use(async (c, error) => await Console.Error.WriteLineAsync("Booh! I got an error:\n" + error.Message)))
-                    .Use(async (c, response) =>
+                        .UseAsync(async (c, error) => await Console.Error.WriteLineAsync("Booh! I got an error:\n" + error.Message)))
+                    .UseAsync(async (c, response) =>
                     {
                         await Console.Out.WriteLineAsync(response);
                     }).Build();

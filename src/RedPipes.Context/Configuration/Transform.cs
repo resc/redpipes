@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using RedPipes.Configuration.Visualization;
@@ -17,45 +18,59 @@ namespace RedPipes.Configuration
         public delegate Task<(IContext, TOut)> AsyncFunc<in TIn, TOut>(IContext ctx, TIn value);
 
         /// <summary> Applies a transformation function to the pipe </summary>
-        public static IBuilder<TIn, TTo> Use<TIn, TFrom, TTo>(this ITransformBuilder<TIn, TFrom> transformBuilder, Func<TFrom, TTo> transform)
+        public static IBuilder<TIn, TOut> Use<TIn, T, TOut>(this ITransformBuilder<TIn, T> transformBuilder, Func<T, TOut> transform)
         {
             return transformBuilder.Use((ctx, value) => Task.FromResult(transform(ctx, value)));
         }
 
         /// <summary> Applies a transformation function to the pipe </summary>
-        public static IBuilder<TIn, TTo> Use<TIn, TFrom, TTo>(this ITransformBuilder<TIn, TFrom> transformBuilder, System.Func<TFrom, TTo> transform)
+        public static IBuilder<TIn, TOut> Use<TIn, T, TOut>(this ITransformBuilder<TIn, T> transformBuilder, System.Func<T, TOut> transform)
         {
             return transformBuilder.Use((ctx, value) => Task.FromResult((ctx, transform(value))));
         }
 
         /// <summary> Applies a transformation function to the pipe </summary>
-        public static IBuilder<TIn, TTo> Use<TIn, TFrom, TTo>(this ITransformBuilder<TIn, TFrom> transformBuilder, AsyncFunc<TFrom, TTo> transform)
+        public static IBuilder<TIn, TOut> Use<TIn, T, TOut>(this ITransformBuilder<TIn, T> transformBuilder, AsyncFunc<T, TOut> transform)
         {
-            return transformBuilder.Use(new AsyncFuncBuilder<TFrom, TTo>(transform));
+            return transformBuilder.Use(new Builder<T, TOut>(transform));
+        }  
+        
+        /// <summary>
+        /// Adds the <paramref name="pipe"/> delegate in the pipeline.
+        /// <paramref name="pipe"/> can decide to execute or ignore the next pipe.
+        /// </summary>
+        public static IBuilder<TIn, TOut> Use<TIn, TOut>(this IBuilder<TIn, TIn> builder, [NotNull] System.Func<IPipe<TOut>, IPipe<TIn>> transformBuilder)
+        {
+            if (transformBuilder == null)
+            {
+                throw new ArgumentNullException(nameof(transformBuilder));
+            }
+
+            return new Builder<TIn, TIn, TOut>(builder, new DelegateBuilder<TIn, TOut>(transformBuilder));
         }
 
-        class AsyncFuncBuilder<TIn, TOut> : Builder, IBuilder<TIn, TOut>
+        class Builder<TIn, TOut> : Builder, IBuilder<TIn, TOut>
         {
             private readonly AsyncFunc<TIn, TOut> _transform;
 
-            public AsyncFuncBuilder([NotNull] AsyncFunc<TIn, TOut> transform)
+            public Builder([NotNull] AsyncFunc<TIn, TOut> transform)
             {
                 _transform = transform;
             }
 
             public Task<IPipe<TIn>> Build(IPipe<TOut> next)
             {
-                IPipe<TIn> pipe = new AsyncFuncPipe<TIn, TOut>(_transform, next);
+                IPipe<TIn> pipe = new Pipe<TIn, TOut>(_transform, next);
                 return Task.FromResult(pipe);
             }
         }
 
-        class AsyncFuncPipe<TIn, TOut> : IPipe<TIn>
+        class Pipe<TIn, TOut> : IPipe<TIn>
         {
             private readonly AsyncFunc<TIn, TOut> _transform;
             private readonly IPipe<TOut> _next;
 
-            public AsyncFuncPipe(AsyncFunc<TIn, TOut> transform, IPipe<TOut> next)
+            public Pipe(AsyncFunc<TIn, TOut> transform, IPipe<TOut> next)
             {
                 _transform = transform;
                 _next = next;

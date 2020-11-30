@@ -24,14 +24,14 @@ namespace RedPipes.Configuration
                 throw new ArgumentNullException(nameof(trueBranch));
             }
 
-            return builder.Use(new Builder<TOut>(condition, trueBranch, isBranch: true));
+            return builder.UseAsync(async next => new Pipe<TOut>(condition, await trueBranch.Build(next), next));
         }
 
         /// <summary> Execute extra steps in the pipe,if the condition is true, and continue executing the pipe </summary>
         public static IBuilder<TIn, TOut> UseBranch<TIn, TOut>(
             this IBuilder<TIn, TOut> builder,
             [NotNull] Func<IContext, TOut, bool> condition,
-            [NotNull] Pipe.PipeFunc<TOut> trueBranch)
+            [NotNull] Delegated.Pipe<TOut> trueBranch)
         {
             if (condition == null)
             {
@@ -43,8 +43,11 @@ namespace RedPipes.Configuration
                 throw new ArgumentNullException(nameof(trueBranch));
             }
 
-            var trueBranchPipeBuilder = Pipe.Builder.For<TOut>().Use(trueBranch);
-            return builder.Use(new Builder<TOut>(condition, trueBranchPipeBuilder, isBranch: true));
+            return builder.UseAsync(async next =>
+            {
+                var tb = await Pipe.Builder.For<TOut>().UseAsync(trueBranch).Build(next);
+                return new Pipe<TOut>(condition, tb, next);
+            });
         }
 
         /// <summary> Execute alternate pipe, if the condition is true </summary>
@@ -63,14 +66,14 @@ namespace RedPipes.Configuration
                 throw new ArgumentNullException(nameof(trueBranch));
             }
 
-            return builder.Use(new Builder<TOut>(condition, trueBranch, isBranch: false));
+            return builder.UseAsync(async next => new Pipe<TOut>(condition, await trueBranch.Build(), next));
         }
 
         /// <summary> Execute alternate pipe, if the condition is true </summary>
         public static IBuilder<TIn, TOut> UseAlternate<TIn, TOut>(
             this IBuilder<TIn, TOut> builder,
             [NotNull] Func<IContext, TOut, bool> condition,
-            [NotNull] Pipe.PipeFunc<TOut> trueBranch)
+            [NotNull] Delegated.Pipe<TOut> trueBranch)
         {
             if (condition == null)
             {
@@ -82,43 +85,11 @@ namespace RedPipes.Configuration
                 throw new ArgumentNullException(nameof(trueBranch));
             }
 
-            var trueBranchPipeBuilder = Pipe.Builder.For<TOut>().Use(trueBranch);
-            return builder.Use(new Builder<TOut>(condition, trueBranchPipeBuilder, isBranch: false));
-        }
-
-
-        class Builder<T> : Builder, IBuilder<T, T>
-        {
-            private readonly Func<IContext, T, bool> _condition;
-            private readonly IBuilder<T, T> _trueBranch;
-            private readonly bool _isBranch;
-
-            public Builder(Func<IContext, T, bool> condition, IBuilder<T, T> trueBranch, bool isBranch)
+            return builder.UseAsync(async next =>
             {
-                _condition = condition;
-                _trueBranch = trueBranch;
-                _isBranch = isBranch;
-            }
-
-            public async Task<IPipe<T>> Build(IPipe<T> falseBranch)
-            {
-                IPipe<T> trueBranch;
-
-                if (_isBranch)
-                    trueBranch = await _trueBranch.Build(falseBranch);
-                else
-                    trueBranch = await _trueBranch.Build();
-
-                IPipe<T> pipe = new Pipe<T>(_condition, trueBranch, falseBranch);
-                return pipe;
-            }
-
-            public override void Accept(IGraphBuilder<IBuilder> visitor, IBuilder next)
-            {
-                visitor.AddEdge(this, next, (EdgeLabels.Label, "next"));
-                visitor.AddEdge(this, _trueBranch, (EdgeLabels.Label, "trueBranch"));
-                _trueBranch.Accept(visitor, next);
-            }
+                var tb = await Pipe.Builder.For<TOut>().UseAsync(trueBranch).Build();
+                return new Pipe<TOut>(condition, tb, next);
+            });
         }
 
         class Pipe<T> : IPipe<T>

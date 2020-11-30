@@ -125,13 +125,14 @@ namespace RedPipes.Patterns.Rpc
             private readonly IRpcProvider _rpc;
             private readonly RpcOptions _options;
             private readonly IPipe<TResponse> _onResponse;
+            [CanBeNull]
             private readonly IPipe<TException> _onException;
 
-            public Pipe(IRpcProvider rpc, RpcOptions options, IPipe<TResponse> onResponse, IPipe<TException> onException)
+            public Pipe([NotNull] IRpcProvider rpc, [NotNull] RpcOptions options, [NotNull] IPipe<TResponse> onResponse, IPipe<TException> onException = null)
             {
-                _rpc = rpc;
-                _options = options;
-                _onResponse = onResponse;
+                _rpc = rpc ?? throw new ArgumentNullException(nameof(rpc));
+                _options = options ?? throw new ArgumentNullException(nameof(options));
+                _onResponse = onResponse ?? throw new ArgumentNullException(nameof(onResponse));
                 _onException = onException;
             }
 
@@ -145,17 +146,19 @@ namespace RedPipes.Patterns.Rpc
                 }
                 catch (TException ex)
                 {
-                    if (_onException != null)
-                    {
-                        await _onException.Execute(ctx, ex);
-                        return;
-                    }
-                    else
+                    if (_onException == null)
                     {
                         throw;
                     }
+
+                    await _onException.Execute(ctx, ex);
+                    return;
                 }
 
+                // don't call the response pipe inside the try/catch,
+                // onException is only fo handling rpc exceptions,
+                // and should not be used to process
+                // exceptions thrown while handling the response
                 await _onResponse.Execute(responseCtx, response);
             }
 
