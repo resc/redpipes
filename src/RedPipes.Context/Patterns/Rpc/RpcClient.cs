@@ -23,7 +23,7 @@ namespace RedPipes.Patterns.Rpc
             get { return Options.EndPoint; }
         }
 
-        public async Task<TResponse> Call<TRequest, TResponse>(IContext ctx, IRpc<TRequest, TResponse> rpc) where TRequest : IRpc<TRequest, TResponse>
+        public async Task<TResponse> Call<TRequest, TResponse>(IContext ctx, IRpcRequest<TRequest, TResponse> rpc) where TRequest : IRpcRequest<TRequest, TResponse>
         {
             return await Call<TRequest, TResponse>(ctx, (TRequest)rpc);
         }
@@ -32,6 +32,13 @@ namespace RedPipes.Patterns.Rpc
         {
             var (_, response) = await Provider.Call<TRequest, TResponse>(ctx, request, Options);
             return response;
+        }
+
+        public async Task Call<TRequest, TResponse>(IContext ctx, IRpcRequest<TRequest, TResponse> request, [NotNull] Pipe.ExecuteAsync<TResponse> onResponse, Pipe.ExecuteAsync<Exception> onError = null) where TRequest : IRpcRequest<TRequest, TResponse>
+        {
+            var responseBuilder = Pipe.Builder.For<TResponse>().UseAsync(onResponse);
+            var errorBuilder = onError == null ? null : Pipe.Builder.For<Exception>().UseAsync(onError);
+            await Call(ctx, request, responseBuilder, errorBuilder);
         }
 
         public async Task Call<TRequest, TResponse>(IContext ctx, TRequest request, [NotNull] Pipe.ExecuteAsync<TResponse> onResponse, Pipe.ExecuteAsync<Exception> onError = null)

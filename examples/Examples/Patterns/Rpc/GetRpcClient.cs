@@ -29,14 +29,16 @@ namespace RedPipes.Patterns.Rpc
                 // rpc calls based on the name
                 .GetRpcClient(endpoint);
 
-            // rpc type is annotated with marker interface, no generic declaration needed on the Call<TResponse>(...) invocation
-            var resp = await client.Call(ctx, new ListRequest(args));
+            // request type is annotated with marker interface, no generic declaration needed on the Call<TResponse>(...) invocation
+            var resp = await client
+                .Call(ctx, new ListRequest(args));
             await Console.Out.WriteLineAsync("Response received: " + resp);
 
             try
             {
                 // timeouts can be set on the context, to prevent slow calls blocking the pipe for too long
-                await client.Call(ctx.WithTimeout(ResponseDelay / 2), new ListRequest(args));
+                await client
+                    .Call(ctx.WithTimeout(ResponseDelay / 2), new ListRequest(args));
                 await Console.Out.WriteLineAsync("Unexpected response received: " + resp);
             }
             catch (TaskCanceledException ex)
@@ -57,6 +59,7 @@ namespace RedPipes.Patterns.Rpc
 
             // callback style, Call(...) completes after the rpc has been sent on the wire,
             // but possibly before the response has returned
+            // request type is annotated with marker interface, no generic declaration needed on the Call<TRequest,TResponse>(ctx,request,onResponse,onError) invocation
             await client.Call(ctx, new ListRequest(args), async (responseCtx, response) =>
             {
                 // be careful to not use ctx here, or any other captures.
@@ -68,18 +71,48 @@ namespace RedPipes.Patterns.Rpc
             {
                 await Console.Out.WriteLineAsync("Request failed: " + exception);
             });
+            // callback style, Call(...) completes after the rpc has been sent on the wire,
+            // but possibly before the response has returned.
+            // Request type is NOT annotated with marker interface,
+            // so the generic declaration is needed on the Call<TRequest,TResponse>(ctx,request,onResponse,onError) invocation
+            await client.Call<ListRequestNoMarkerInterface, ListResponse>(ctx, new ListRequestNoMarkerInterface(args), async (responseCtx, response) =>
+             {
+                 // be careful to not use ctx here, or any other captures.
+                 // it's highly probable that will cause gnashing of teeth,
+                 // wailing of despair and face-palming by your future self.
+                 await Console.Out.WriteLineAsync("Response received: " + response);
 
-            // build response handler pipe
-            var responseHandler = await GetResponseHandler();
+             }, async (requestCtx, exception) =>
+             {
+                 await Console.Out.WriteLineAsync("Request failed: " + exception);
+             });
+
+            // build response and exception pipes
+            var responsePipe = await GetResponsePipe();
+            var exceptionPipe = await GetExceptionPipe();
 
             // response pipe style, Call(...) completes after the rpc has been sent on the wire, but possibly before the response has returned
-            await client.Call(ctx, new ListRequest(args), responseHandler);
+            await client.Call(ctx, new ListRequest(args), responsePipe, exceptionPipe);
         }
 
-        private static async Task<IPipe<ListResponse>> GetResponseHandler()
+        private static Task<IPipe<Exception>> GetExceptionPipe()
         {
-            return await  Pipe
-                    .Builder.For<ListResponse>().Transform().Use((responseCtx, response) => (responseCtx, response.ToString()))
+            return Pipe.Builder.For<Exception>()
+                .Transform().Use((responseCtx, exception) => (responseCtx, exception.ToString()))
+                .UseAsync(async (responseCtx, exception) =>
+                {
+                    // be careful to not use ctx here, or any other captures.
+                    // it's highly probable that will cause gnashing of teeth,
+                    // wailing of despair and face-palming by your future self.
+                    await Console.Out.WriteLineAsync("Exception thrown: " + exception);
+                }).Build();
+        }
+
+        private static async Task<IPipe<ListResponse>> GetResponsePipe()
+        {
+            return await Pipe
+                    .Builder.For<ListResponse>()
+                    .Transform().Use((responseCtx, response) => (responseCtx, response.ToString()))
                     .UseAsync(async (responseCtx, response) =>
                     {
                         // be careful to not use ctx here, or any other captures.
@@ -141,7 +174,7 @@ namespace RedPipes.Patterns.Rpc
             }
         }
 
-        public class ListRequest : IEnumerable<string>, IRpc<ListRequest, ListResponse>
+        public class ListRequest : IEnumerable<string>, IRpcRequest<ListRequest, ListResponse>
         {
             public string[] Args { get; }
 
@@ -194,7 +227,7 @@ namespace RedPipes.Patterns.Rpc
 
         public void Accept(IGraphBuilder<IPipe> visitor)
         {
-            
+
         }
     }
 }
