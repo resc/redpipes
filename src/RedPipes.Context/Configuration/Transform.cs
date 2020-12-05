@@ -36,17 +36,16 @@ namespace RedPipes.Configuration
         }  
         
         /// <summary>
-        /// Adds the <paramref name="pipe"/> delegate in the pipeline.
-        /// <paramref name="pipe"/> can decide to execute or ignore the next pipe.
+        /// Adds the <paramref name="buildTransform"/> delegate in the pipeline.
         /// </summary>
-        public static IBuilder<TIn, TOut> Use<TIn, TOut>(this IBuilder<TIn, TIn> builder, [NotNull] System.Func<IPipe<TOut>, IPipe<TIn>> transformBuilder)
+        public static IBuilder<TIn, TOut> Use<TIn, TOut>(this IBuilder<TIn, TIn> builder, [NotNull] System.Func<IPipe<TOut>, IPipe<TIn>> buildTransform)
         {
-            if (transformBuilder == null)
+            if (buildTransform == null)
             {
-                throw new ArgumentNullException(nameof(transformBuilder));
+                throw new ArgumentNullException(nameof(buildTransform));
             }
 
-            return new Builder<TIn, TIn, TOut>(builder, new DelegateBuilder<TIn, TOut>(transformBuilder));
+            return new Builder<TIn, TIn, TOut>(builder, new DelegateBuilder<TIn, TOut>(buildTransform));
         }
 
         class Builder<TIn, TOut> : Builder, IBuilder<TIn, TOut>

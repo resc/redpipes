@@ -13,7 +13,7 @@ namespace RedPipes.Configuration
         /// <summary>Represents the <see cref="IPipe{T}.Execute"/> function. </summary>
         public delegate Task ExecuteAsync<in T>(IContext ctx, T value);
 
-        /// <summary> Entry point for building pipes </summary>
+        /// <summary> Untyped entry point for building pipes </summary>
         public static IBuilderProvider Builder
         {
             get { return BuilderProvider.Instance; }
@@ -34,8 +34,6 @@ namespace RedPipes.Configuration
             return new TransformBuilder<TIn, TOut>(input);
         }
 
-
-
         /// <summary>
         /// Adds the <paramref name="builderFunc"/> delegate in the pipeline. 
         /// </summary>
@@ -49,8 +47,7 @@ namespace RedPipes.Configuration
             return new Builder<TIn, TOut, TOut>(builder, new DelegateBuilder<TOut, TOut>(builderFunc));
         }
         /// <summary>
-        /// Adds the <paramref name="pipe"/> delegate in the pipeline.
-        /// <paramref name="pipe"/> can decide to execute or ignore the next pipe.
+        /// Adds the <paramref name="builderFunc"/> delegate in the pipeline. 
         /// </summary>
         public static IBuilder<TIn, TOut> UseAsync<TIn, TOut>(this IBuilder<TIn, TOut> builder, [NotNull] Func<IPipe<TOut>, Task<IPipe<TOut>>> builderFunc)
         {
