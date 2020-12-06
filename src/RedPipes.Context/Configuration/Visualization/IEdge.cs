@@ -1,9 +1,9 @@
 ﻿namespace RedPipes.Configuration.Visualization
 {
-    public interface IEdge<T> : ILabeled
+    public interface IEdge : ILabeled
     {
-        INode<T> Source { get; }
-        INode<T> Target { get; }
+        INode Source { get; }
+        INode Target { get; }
 
         void Remove();
     }

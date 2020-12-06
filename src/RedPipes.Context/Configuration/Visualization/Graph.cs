@@ -12,6 +12,16 @@ namespace RedPipes.Configuration.Visualization
         class Labeled
         {
             public int Id { get; }
+
+            public string Name
+            {
+                get
+                {
+                    Labels.TryGetValue(Keys.Name, out var label);
+                    return label?.ToString() ?? $"{GetType().Name}  #{Id}";
+                }
+            }
+
             public IDictionary<string, object> Labels { get; }
 
             public Labeled(int id, IDictionary<string, object> labels)
@@ -34,31 +44,31 @@ namespace RedPipes.Configuration.Visualization
 
         #region Node
 
-        class Node : Labeled, INode<T>
+        class Node : Labeled, INode
         {
-            public Node(int id, [NotNull] T item) : base(id, null)
+            public Node(int id, [NotNull] object item) : base(id, null)
             {
                 Item = item ?? throw new ArgumentNullException(nameof(item));
-                OutEdges = new HashSet<IEdge<T>>();
-                InEdges = new HashSet<IEdge<T>>();
+                OutEdges = new HashSet<IEdge>();
+                InEdges = new HashSet<IEdge>();
             }
 
-            public T Item { get; }
+            public object Item { get; }
 
-            public ISet<IEdge<T>> OutEdges { get; }
-            public ISet<IEdge<T>> InEdges { get; }
+            public ISet<IEdge> OutEdges { get; }
+            public ISet<IEdge> InEdges { get; }
         }
 
         #endregion
 
         #region Edge
 
-        class Edge : Labeled, IEquatable<Edge>, IEdge<T>
+        class Edge : Labeled, IEquatable<Edge>, IEdge
         {
-            public INode<T> Source { get; }
-            public INode<T> Target { get; }
+            public INode Source { get; }
+            public INode Target { get; }
 
-            public Edge(int id, [NotNull] INode<T> source, [NotNull] INode<T> target, IDictionary<string, object> labels) : base(id, labels)
+            public Edge(int id, [NotNull] INode source, [NotNull] INode target, IDictionary<string, object> labels) : base(id, labels)
             {
                 Source = source ?? throw new ArgumentNullException(nameof(source));
                 Target = target ?? throw new ArgumentNullException(nameof(target));
@@ -150,20 +160,20 @@ namespace RedPipes.Configuration.Visualization
 
         private int _nextId;
 
-        private readonly Dictionary<T, Node> _nodes;
+        private readonly Dictionary<T, INode> _nodes;
 
 
         protected Graph()
         {
-            _nodes = new Dictionary<T, Node>(ReferenceEqualityComparer<T>.Default);
+            _nodes = new Dictionary<T, INode>(ReferenceEqualityComparer<T>.Default);
         }
 
-        public IReadOnlyCollection<INode<T>> Nodes
+        public IReadOnlyCollection<INode> Nodes
         {
             get { return _nodes.Values; }
         }
 
-        public INode<T> GetOrAddNode(T item)
+        public INode GetOrAddNode(T item)
         {
             if (item == null) return null;
             if (!_nodes.TryGetValue(item, out var node))

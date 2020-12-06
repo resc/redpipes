@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using RedPipes.Configuration.Visualization;
@@ -8,30 +8,21 @@ namespace RedPipes.Configuration
 {
     public static class Branch
     {
-        /// <summary> Execute extra steps in the pipe,if the condition is true, and continue executing the pipe </summary>
+        /// <summary> Execute extra steps in the trueBranch if the condition is true, else skip them and continue executing the pipe </summary>
         public static IBuilder<TIn, TOut> UseBranch<TIn, TOut>(
             this IBuilder<TIn, TOut> builder,
             [NotNull] Func<IContext, TOut, bool> condition,
-            [NotNull] IBuilder<TOut, TOut> trueBranch)
+            [NotNull] IBuilder<TOut, TOut> trueBranch, string conditionDescription = null)
         {
-            if (condition == null)
-            {
-                throw new ArgumentNullException(nameof(condition));
-            }
-
-            if (trueBranch == null)
-            {
-                throw new ArgumentNullException(nameof(trueBranch));
-            }
-
-            return builder.UseAsync(async next => new Pipe<TOut>(condition, await trueBranch.Build(next), next));
+            return builder.UseBranch(condition, trueBranch, Builder.Unit<TOut>(), conditionDescription);
         }
 
         /// <summary> Execute extra steps in the pipe,if the condition is true, and continue executing the pipe </summary>
         public static IBuilder<TIn, TOut> UseBranch<TIn, TOut>(
             this IBuilder<TIn, TOut> builder,
             [NotNull] Func<IContext, TOut, bool> condition,
-            [NotNull] Delegated.Pipe<TOut> trueBranch)
+            [NotNull] Delegated.Pipe<TOut> trueBranch,
+            string conditionDescription = null)
         {
             if (condition == null)
             {
@@ -43,18 +34,42 @@ namespace RedPipes.Configuration
                 throw new ArgumentNullException(nameof(trueBranch));
             }
 
-            return builder.UseAsync(async next =>
+            var tb = Pipe.Build.For<TOut>().UseAsync(trueBranch);
+            return builder.UseBranch(condition, tb, Builder.Unit<TOut>(), conditionDescription);
+        }
+
+        /// <summary> Execute the <paramref name="trueBranch"/> if the condition is true, else execute the <paramref name="falseBranch"/>, after any branch, continue executing the pipe </summary>
+        public static IBuilder<TIn, TOut> UseBranch<TIn, TOut>(
+            this IBuilder<TIn, TOut> builder,
+            [NotNull] Func<IContext, TOut, bool> condition,
+            [NotNull] IBuilder<TOut, TOut> trueBranch,
+            [NotNull] IBuilder<TOut, TOut> falseBranch,
+            string conditionDescription = null)
+        {
+            if (condition == null)
             {
-                var tb = await Pipe.Builder.For<TOut>().UseAsync(trueBranch).Build(next);
-                return new Pipe<TOut>(condition, tb, next);
-            });
+                throw new ArgumentNullException(nameof(condition));
+            }
+
+            if (trueBranch == null)
+            {
+                throw new ArgumentNullException(nameof(trueBranch));
+            }
+
+            if (falseBranch == null)
+            {
+                throw new ArgumentNullException(nameof(falseBranch));
+            }
+
+            return Builder.Join(builder, new Builder<TOut>(false, condition, trueBranch, falseBranch, conditionDescription));
         }
 
         /// <summary> Execute alternate pipe, if the condition is true </summary>
         public static IBuilder<TIn, TOut> UseAlternate<TIn, TOut>(
             this IBuilder<TIn, TOut> builder,
             [NotNull] Func<IContext, TOut, bool> condition,
-            [NotNull] IBuilder<TOut, TOut> trueBranch)
+            [NotNull] IBuilder<TOut, TOut> trueBranch,
+            string conditionDescription = null)
         {
             if (condition == null)
             {
@@ -66,30 +81,53 @@ namespace RedPipes.Configuration
                 throw new ArgumentNullException(nameof(trueBranch));
             }
 
-            return builder.UseAsync(async next => new Pipe<TOut>(condition, await trueBranch.Build(), next));
+            return Builder.Join(builder, new Builder<TOut>(true, condition, trueBranch, Builder.Unit<TOut>(), conditionDescription));
         }
 
         /// <summary> Execute alternate pipe, if the condition is true </summary>
         public static IBuilder<TIn, TOut> UseAlternate<TIn, TOut>(
             this IBuilder<TIn, TOut> builder,
             [NotNull] Func<IContext, TOut, bool> condition,
-            [NotNull] Delegated.Pipe<TOut> trueBranch)
+            [NotNull] Delegated.Pipe<TOut> trueBranch,
+            string conditionDescription = null)
         {
-            if (condition == null)
+            var tb = Pipe.Build.For<TOut>().UseAsync(trueBranch);
+            return builder.UseAlternate(condition, tb, conditionDescription);
+        }
+
+        class Builder<T> : Builder, IBuilder<T, T>
+        {
+            private readonly bool _isAlternate;
+            private readonly Func<IContext, T, bool> _condition;
+            private readonly IBuilder<T, T> _trueBranch;
+            private readonly IBuilder<T, T> _falseBranch;
+
+            public Builder(bool isAlternate, Func<IContext, T, bool> condition, IBuilder<T, T> trueBranch, IBuilder<T, T> falseBranch, string conditionDescription) : base(conditionDescription)
             {
-                throw new ArgumentNullException(nameof(condition));
+                _isAlternate = isAlternate;
+                _condition = condition;
+                _trueBranch = trueBranch;
+                _falseBranch = falseBranch;
             }
 
-            if (trueBranch == null)
+            public async Task<IPipe<T>> Build(IPipe<T> next)
             {
-                throw new ArgumentNullException(nameof(trueBranch));
+                var truePipe = _isAlternate
+                    ? await _trueBranch.Build()
+                    : await _trueBranch.Build(next);
+                var falsePipe = await _falseBranch.Build(next);
+                return new Pipe<T>(_condition, truePipe, falsePipe, Name);
             }
 
-            return builder.UseAsync(async next =>
+            public override void Accept(IGraphBuilder<IBuilder> visitor)
             {
-                var tb = await Pipe.Builder.For<TOut>().UseAsync(trueBranch).Build();
-                return new Pipe<TOut>(condition, tb, next);
-            });
+                var type = (_isAlternate ? "Alternate" : "Branch");
+                visitor.GetOrAddNode(this, (Keys.Name, $"{type}: {Name}"));
+                visitor.AddEdge(this, _trueBranch, (Keys.Name, "True " + type));
+                visitor.AddEdge(this, _falseBranch, (Keys.Name, "False" + type));
+                _trueBranch.Accept(visitor);
+                _falseBranch.Accept(visitor);
+            }
         }
 
         class Pipe<T> : IPipe<T>
@@ -97,12 +135,14 @@ namespace RedPipes.Configuration
             private readonly Func<IContext, T, bool> _condition;
             private readonly IPipe<T> _trueBranch;
             private readonly IPipe<T> _falseBranch;
+            private readonly string _conditionDescription;
 
-            public Pipe(Func<IContext, T, bool> condition, IPipe<T> trueBranch, IPipe<T> falseBranch)
+            public Pipe(Func<IContext, T, bool> condition, IPipe<T> trueBranch, IPipe<T> falseBranch, string conditionDescription)
             {
                 _condition = condition;
                 _trueBranch = trueBranch;
                 _falseBranch = falseBranch;
+                _conditionDescription = conditionDescription ?? $"({nameof(IContext)}, {typeof(T).GetCSharpName()}) => bool";
             }
 
             public async Task Execute(IContext ctx, T value)
@@ -119,11 +159,11 @@ namespace RedPipes.Configuration
 
             public void Accept(IGraphBuilder<IPipe> visitor)
             {
-                visitor.GetOrAddNode(this, (NodeLabels.Label, "Condition"));
-                if (visitor.AddEdge(this, _trueBranch, (EdgeLabels.Label, "True")))
+                visitor.GetOrAddNode(this, (Keys.Name, _conditionDescription));
+                if (visitor.AddEdge(this, _trueBranch, (Keys.Name, "True")))
                     _trueBranch.Accept(visitor);
 
-                if (visitor.AddEdge(this, _falseBranch, (EdgeLabels.Label, "False")))
+                if (visitor.AddEdge(this, _falseBranch, (Keys.Name, "False")))
                     _falseBranch.Accept(visitor);
             }
         }

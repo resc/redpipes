@@ -6,15 +6,7 @@ namespace RedPipes.Configuration
     /// <summary> Untyped builder interface </summary>
     public interface IBuilder
     {
-        void Accept(IGraphBuilder<IBuilder> visitor, IBuilder next);
-    }
-
-    public abstract class Builder : IBuilder
-    {
-        public virtual void Accept(IGraphBuilder<IBuilder> visitor, IBuilder next)
-        {
-            visitor.AddEdge(this, next, (EdgeLabels.Label, "next"));
-        }
+        void Accept(IGraphBuilder<IBuilder> visitor);
     }
 
     /// <summary> Builder interface to build pipes from other pipes. </summary>

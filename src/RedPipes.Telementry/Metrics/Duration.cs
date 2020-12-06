@@ -116,7 +116,7 @@ namespace RedPipes.Telemetry.Metrics
             
             public void Accept(IGraphBuilder<IPipe> visitor)
             {
-                if (visitor.AddEdge(this, _next, (EdgeLabels.Label, "next")))
+                if (visitor.AddEdge(this, _next, (Keys.Name, "Next")))
                     _next.Accept(visitor);
             }
         }

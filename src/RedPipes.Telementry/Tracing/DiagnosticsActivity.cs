@@ -106,12 +106,12 @@ namespace RedPipes.Telemetry.Tracing
             public void Accept(IGraphBuilder<IPipe> visitor)
             {
                 visitor.GetOrAddNode(this
-                    , (NodeLabels.Label, $"Trace activity '{_name}' ({_kind})")
+                    , (Keys.Name, $"Trace activity '{_name}' ({_kind})")
                     , ("DiagnosticsName", _name)
                     , ("DiagnosticsKind", _kind)
                     , ("DiagnosticsSource", $"{_source.Name} {_source.Version}"));
 
-                if (visitor.AddEdge(this, _next, (EdgeLabels.Label, "next")))
+                if (visitor.AddEdge(this, _next, (Keys.Name, "Next")))
                 {
                     _next.Accept(visitor);
                 }

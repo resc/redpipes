@@ -9,7 +9,7 @@ namespace RedPipes.Configuration
         /// <returns>The constructed pipe</returns>
         public static Task<IPipe<TIn>> Build<TIn, TOut>(this IBuilder<TIn, TOut> builder)
         {
-            return builder.Build(new NullPipe<TOut>());
+            return builder.Build(Pipe.End<TOut>());
         }
     }
 }

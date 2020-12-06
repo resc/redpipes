@@ -7,10 +7,12 @@ namespace RedPipes.Configuration
     internal class TransformBuilder<TIn, T> : ITransformBuilder<TIn, T>
     {
         private readonly IBuilder<TIn, T> _input;
+        private readonly string _builderName;
 
-        public TransformBuilder([NotNull] IBuilder<TIn, T> input)
+        public TransformBuilder([NotNull] IBuilder<TIn, T> input, string builderName = null)
         {
             _input = input ?? throw new ArgumentNullException(nameof(input));
+            _builderName = builderName;
         }
 
         public IBuilder<TIn, TOut> Use<TOut>([NotNull] IBuilder<T, TOut> transform)
@@ -18,7 +20,7 @@ namespace RedPipes.Configuration
             if (transform == null)
                 throw new ArgumentNullException(nameof(transform));
 
-            return new Builder<TIn, T, TOut>(_input, transform);
+            return Builder.Join(_input, transform);
         }
     }
 
@@ -26,9 +28,9 @@ namespace RedPipes.Configuration
     {
         private readonly Func<IPipe<TOut>, IPipe<TIn>> _build;
 
-        public DelegateBuilder(Func<IPipe<TOut>, IPipe<TIn>> build)
+        public DelegateBuilder([NotNull] Func<IPipe<TOut>, IPipe<TIn>> build, string builderName = null) : base(builderName)
         {
-            _build = build;
+            _build = build ?? throw new ArgumentNullException(nameof(build));
         }
 
         public Task<IPipe<TIn>> Build(IPipe<TOut> next)
@@ -39,11 +41,11 @@ namespace RedPipes.Configuration
 
     internal class AsyncDelegateBuilder<TIn, TOut> : Builder, IBuilder<TIn, TOut>
     {
-        private readonly Func<IPipe<TOut>,Task< IPipe<TIn>>> _buildAsync;
+        private readonly Func<IPipe<TOut>, Task<IPipe<TIn>>> _buildAsync;
 
-        public AsyncDelegateBuilder(Func<IPipe<TOut>, Task<IPipe<TIn>>> buildAsync)
+        public AsyncDelegateBuilder([NotNull] Func<IPipe<TOut>, Task<IPipe<TIn>>> buildAsync, string builderName = null) : base(builderName)
         {
-            _buildAsync = buildAsync;
+            _buildAsync = buildAsync ?? throw new ArgumentNullException(nameof(buildAsync));
         }
 
         public Task<IPipe<TIn>> Build(IPipe<TOut> next)

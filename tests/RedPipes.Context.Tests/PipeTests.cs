@@ -24,7 +24,7 @@ namespace RedPipes
             });
             var id = Guid.NewGuid();
             var builder = Pipe
-                .Builder.For<int>()
+                .Build.For<int>()
                 .UseDiagnosticsActivity("TestActivity").Transform().Use((ctx, data) => (ctx, data.ToString()));
 
             var output = new Output();

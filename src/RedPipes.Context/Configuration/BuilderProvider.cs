@@ -1,4 +1,6 @@
-﻿using RedPipes.Configuration.Nulls;
+﻿
+using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace RedPipes.Configuration
 {
@@ -10,12 +12,12 @@ namespace RedPipes.Configuration
 
         public IBuilder<T, T> For<T>()
         {
-            return NullBuilder<T>.Instance;
+            return Builder.Unit<T>();
         }
 
         public IBuilder<TIn, TOut> For<TIn, TOut>(IBuilder<TIn, TOut> transform)
         {
-            return NullBuilder<TIn>.Instance.Transform().Use(transform);
+            return transform ?? throw new ArgumentNullException();
         }
     }
 }

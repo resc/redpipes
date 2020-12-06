@@ -21,7 +21,7 @@ namespace RedPipes.Introspection
 
 
 
-            DumpPipeStructure(rootNode, scope, new HashSet<INode<IPipe>>());
+            DumpPipeStructure(rootNode, scope, new HashSet<INode>());
             var opts = new JsonSerializerOptions
             {
                 WriteIndented = true,
@@ -31,7 +31,7 @@ namespace RedPipes.Introspection
         }
 
 
-        private static void DumpPipeStructure(INode<IPipe> n, IScope scope, HashSet<INode<IPipe>> visited)
+        private static void DumpPipeStructure(INode  n, IScope scope, HashSet<INode > visited)
         {
             if (!visited.Add(n))
             {
@@ -50,7 +50,7 @@ namespace RedPipes.Introspection
 
             foreach (var e in n.OutEdges.OrderBy(x => x.Id))
             {
-                var name = e.Labels.GetValueOrDefault(EdgeLabels.Label, "next").ToString();
+                var name = e.Labels.GetValueOrDefault(Keys.Name, "Next").ToString();
                 DumpPipeStructure(e.Target, scope.Scope(name) ,visited);
             }
 

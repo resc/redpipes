@@ -14,7 +14,7 @@ namespace RedPipes.Patterns.Auth
             if (policy == null)
                 throw new ArgumentNullException(nameof(policy));
 
-            return builder.Use(new Builder<TOut>(policy, onDeny));
+            return builder.UseAsync(async (next) => new Pipe<TOut>(policy, await onDeny.Build(), next), policy.Name);
         }
 
         public static IBuilder<TIn, TOut> UseAuthPolicy<TIn, TOut>(this IBuilder<TIn, TOut> builder, Func<PolicyBuilder<TOut>, PolicyBuilder<TOut>> configure, IBuilder<TOut, TOut> onDeny)
@@ -25,33 +25,6 @@ namespace RedPipes.Patterns.Auth
             var policyBuilder = new PolicyBuilder<TOut>(null);
             var policy = configure(policyBuilder).Build();
             return builder.UseAuthPolicy(policy, onDeny);
-        }
-
-
-        class Builder<T> : Builder, IBuilder<T, T>
-        {
-            private readonly Policy<T> _policy;
-            private readonly IBuilder<T, T> _deny;
-
-            public Builder(Policy<T> policy, IBuilder<T, T> deny)
-            {
-                _policy = policy;
-                _deny = deny;
-            }
-
-            public async Task<IPipe<T>> Build(IPipe<T> next)
-            {
-                var deny = await _deny.Build();
-                IPipe<T> pipe = new Pipe<T>(_policy, deny, next);
-                return pipe;
-            }
-
-            public override void Accept(IGraphBuilder<IBuilder> visitor, IBuilder next)
-            {
-                visitor.AddEdge(this, next, (EdgeLabels.Label, "accept"));
-                visitor.AddEdge(this, _deny, (EdgeLabels.Label, "deny"));
-                _deny.Accept(visitor, null);
-            }
         }
 
         class Pipe<T> : IPipe<T>
@@ -78,10 +51,10 @@ namespace RedPipes.Patterns.Auth
 
             public void Accept(IGraphBuilder<IPipe> visitor)
             {
-                if (visitor.AddEdge(this, _accept, (EdgeLabels.Label, "accept")))
+                if (visitor.AddEdge(this, _accept, (Keys.Name, "Accept")))
                     _accept.Accept(visitor);
 
-                if (visitor.AddEdge(this, _deny, (EdgeLabels.Label, "deny")))
+                if (visitor.AddEdge(this, _deny, (Keys.Name, "Deny")))
                     _deny.Accept(visitor);
             }
         }

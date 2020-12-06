@@ -77,13 +77,13 @@ namespace RedPipes.Patterns.Rpc
 
             public IBuilder<TIn, TResponse> OnRpcError<TError>(Func<IBuilder<TError, TError>, IBuilder<TError, TError>> onErrorPipeBuilder) where TError : Exception
             {
-                var errorPipeBuilder = onErrorPipeBuilder(Pipe.Builder.For<TError>());
+                var errorPipeBuilder = onErrorPipeBuilder(Pipe.Build.For<TError>());
                 return _builder.Transform().Use(new Builder<TRequest, TResponse, TError>(_provider, _options.Clone(), _responsePipeBuilder, errorPipeBuilder));
             }
 
             IOnRpcError<TIn, TR> IOnRpcResponse<TIn, TRequest>.OnRpcResponse<TR>(Func<IBuilder<TR, TR>, IBuilder<TR, TR>> onResponse)
             {
-                var responsePipeBuilder = onResponse(Pipe.Builder.For<TR>());
+                var responsePipeBuilder = onResponse(Pipe.Build.For<TR>());
                 return new RpcPipeBuilder<TIn, TRequest, TR>(_builder, _provider, _options, responsePipeBuilder);
             }
         }
@@ -111,12 +111,12 @@ namespace RedPipes.Patterns.Rpc
                 return pipe;
             }
 
-            public override void Accept(IGraphBuilder<IBuilder> visitor, IBuilder next)
+            public override void Accept(IGraphBuilder<IBuilder> visitor)
             {
-                visitor.AddEdge(this, _onResponse, (EdgeLabels.Label, "onResponse"));
-                visitor.AddEdge(this, _onException, (EdgeLabels.Label, "onException"));
-                _onResponse.Accept(visitor, next);
-                _onException.Accept(visitor, null);
+                visitor.AddEdge(this, _onResponse, (Keys.Name, "Response"));
+                visitor.AddEdge(this, _onException, (Keys.Name, "Exception"));
+                _onResponse.Accept(visitor);
+                _onException.Accept(visitor);
             }
         }
 
@@ -166,11 +166,11 @@ namespace RedPipes.Patterns.Rpc
             public void Accept(IGraphBuilder<IPipe> visitor)
             {
                 var label = $"Remote Procedure Call ({typeof(TRequest).GetCSharpName()} request) => ({typeof(TResponse).GetCSharpName()} response)\nendpoint: {_options.EndPoint}";
-                visitor.GetOrAddNode(this, (NodeLabels.Label, label));
-                if (visitor.AddEdge(this, _onResponse, (EdgeLabels.Label, "onResponse")))
+                visitor.GetOrAddNode(this, (Keys.Name, label));
+                if (visitor.AddEdge(this, _onResponse, (Keys.Name, "Response")))
                     _onResponse.Accept(visitor);
 
-                if (visitor.AddEdge(this, _onException, (EdgeLabels.Label, "onException")))
+                if (visitor.AddEdge(this, _onException, (Keys.Name, "Exception")))
                     _onException.Accept(visitor);
             }
         }

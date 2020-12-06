@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using RedPipes.Configuration.Visualization;
 
 namespace RedPipes.Configuration
 {
@@ -14,9 +15,24 @@ namespace RedPipes.Configuration
         public delegate Task ExecuteAsync<in T>(IContext ctx, T value);
 
         /// <summary> Untyped entry point for building pipes </summary>
-        public static IBuilderProvider Builder
+        public static IBuilderProvider Build
         {
             get { return BuilderProvider.Instance; }
+        }
+
+        public static IBuilder<T, T> For<T>()
+        {
+            return Build.For<T>();
+        }
+
+        public static IPipe<T> End<T>()
+        {
+            return new Pipe<T>("End");
+        }
+
+        public static IBuilder<TIn, TOut> StopProcessing<TIn, TOut>(this IBuilder<TIn, TOut> input)
+        {
+            return input.Use(next => End<TOut>(), "End");
         }
 
         /// <summary> Links <paramref name="input"/> pipe to <paramref name="output"/> pipe</summary>
@@ -25,38 +41,43 @@ namespace RedPipes.Configuration
             if (output == null)
                 throw new ArgumentNullException(nameof(output));
 
-            return new Builder<TIn, TOut, TOut>(input, output);
+            return Builder.Join(input, output);
         }
 
         /// <summary> Sets up a builder for a transformation <see cref="IPipe{T}"/> </summary>
-        public static ITransformBuilder<TIn, TOut> Transform<TIn, TOut>(this IBuilder<TIn, TOut> input)
+        public static ITransformBuilder<TIn, TOut> Transform<TIn, TOut>(this IBuilder<TIn, TOut> input, string transformName = null)
         {
-            return new TransformBuilder<TIn, TOut>(input);
+            return new TransformBuilder<TIn, TOut>(input, transformName);
         }
 
         /// <summary>
         /// Adds the <paramref name="builderFunc"/> delegate in the pipeline. 
+        /// Adds the <paramref name="builderFunc"/> delegate in the pipeline. 
         /// </summary>
-        public static IBuilder<TIn, TOut> Use<TIn, TOut>(this IBuilder<TIn, TOut> builder, [NotNull] Func<IPipe<TOut>, IPipe<TOut>> builderFunc)
+        public static IBuilder<TIn, TOut> Use<TIn, TOut>(this IBuilder<TIn, TOut> builder, [NotNull] Func<IPipe<TOut>, IPipe<TOut>> builderFunc, string builderName = null)
         {
             if (builderFunc == null)
             {
                 throw new ArgumentNullException(nameof(builderFunc));
             }
 
-            return new Builder<TIn, TOut, TOut>(builder, new DelegateBuilder<TOut, TOut>(builderFunc));
+            return Builder.Join(builder, new DelegateBuilder<TOut, TOut>(builderFunc, builderName));
         }
+
         /// <summary>
         /// Adds the <paramref name="builderFunc"/> delegate in the pipeline. 
         /// </summary>
-        public static IBuilder<TIn, TOut> UseAsync<TIn, TOut>(this IBuilder<TIn, TOut> builder, [NotNull] Func<IPipe<TOut>, Task<IPipe<TOut>>> builderFunc)
+        public static IBuilder<TIn, TOut> UseAsync<TIn, TOut>(this IBuilder<TIn, TOut> builder, [NotNull] Func<IPipe<TOut>, Task<IPipe<TOut>>> builderFunc,
+            string builderName = null)
         {
             if (builderFunc == null)
             {
                 throw new ArgumentNullException(nameof(builderFunc));
             }
 
-            return new Builder<TIn, TOut, TOut>(builder, new AsyncDelegateBuilder<TOut, TOut>(builderFunc));
+            return Builder.Join(builder, new AsyncDelegateBuilder<TOut, TOut>(builderFunc, builderName));
         }
     }
+
+
 }

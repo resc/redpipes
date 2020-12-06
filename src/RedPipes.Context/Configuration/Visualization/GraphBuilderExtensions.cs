@@ -16,7 +16,7 @@ namespace RedPipes.Configuration.Visualization
             return visitor.AddEdge(source, target, dict);
         }
 
-        public static INode<T> GetOrAddNode<T>(this IGraphBuilder<T> visitor, T item, params (string Label, object Value)[] labels)
+        public static INode GetOrAddNode<T>(this IGraphBuilder<T> visitor, T item, params (string Label, object Value)[] labels)
         {
             var node = visitor.GetOrAddNode(item);
             if (labels != null && labels.Length > 0)
@@ -36,7 +36,7 @@ namespace RedPipes.Configuration.Visualization
             SaveDgmlAsTempFileAndOpen(graph);
         }
 
-        public static void SaveDgmlAsTempFileAndOpen(this DgmlGraph<IPipe> graph)
+        public static void SaveDgmlAsTempFileAndOpen<T>(this DgmlGraph<T> graph) where T : class
         {
             var tmpFile = Path.GetTempFileName();
             tmpFile += ".dgml";

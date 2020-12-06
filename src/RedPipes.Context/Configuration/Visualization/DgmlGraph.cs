@@ -33,15 +33,15 @@ namespace RedPipes.Configuration.Visualization
             );
         }
 
-        private IEnumerable<object> ToXLinks(INode<T> arg)
+        private IEnumerable<object> ToXLinks(INode arg)
         {
             foreach (var e in arg.OutEdges.OrderBy(e => e.Id))
             {
                 var attrs =
                     new[] {
-                            new XAttribute(XName.Get("Source"), e.Source.Id), 
-                            new XAttribute(XName.Get("Target"), e.Target.Id), 
-                            new XAttribute(XName.Get("Label"), e.Labels.GetValueOrDefault(EdgeLabels.Label,"next"))
+                            new XAttribute(XName.Get("Source"), e.Source.Id),
+                            new XAttribute(XName.Get("Target"), e.Target.Id),
+                            new XAttribute(XName.Get("Label"), e.Labels.GetValueOrDefault(Keys.Name,"Next"))
                         }
                         .Concat(arg.Labels.Select(kv => new XAttribute(XName.Get("Edge" + kv.Key), kv.Value.ToString())))
                         .Cast<object>()
@@ -53,13 +53,13 @@ namespace RedPipes.Configuration.Visualization
             }
         }
 
-        private object ToXNode(INode<T> n)
+        private object ToXNode(INode n)
         {
             var attrs =
                 new[]
                     {
-                        new XAttribute(XName.Get("Id"), n.Id), 
-                        new XAttribute(XName.Get("Label"),n.Labels.GetValueOrDefault(NodeLabels.Label, n.Item.GetType().GetCSharpName())),
+                        new XAttribute(XName.Get("Id"), n.Id),
+                        new XAttribute(XName.Get("Label"),n.Labels.GetValueOrDefault(Keys.Name, n.Item.GetType().GetCSharpName())),
                     }
                     .Concat(n.Labels.Select(kv => new XAttribute(XName.Get("Node" + kv.Key), kv.Value.ToString())))
                     .Cast<object>()

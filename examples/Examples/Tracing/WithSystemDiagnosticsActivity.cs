@@ -40,7 +40,7 @@ namespace RedPipes.Tracing
             ActivitySource.AddActivityListener(listener);
 
             var rpc = await Pipe
-                    .Builder.For<string[]>()
+                    .Build.For<string[]>()
                     .UseDiagnosticsActivity("rpc.request", ActivityKind.Client, getTags: (c, args) => args.Select((a, i) => new KeyValuePair<string, object>($"arg{i}", a)))
                     .WithRpcProvider(this, new RpcOptions { Timeout = TimeSpan.FromSeconds(5) })
                     .OnRpcResponse<string>(pipe => pipe

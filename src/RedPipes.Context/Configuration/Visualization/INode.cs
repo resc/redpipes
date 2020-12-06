@@ -2,11 +2,11 @@
 
 namespace RedPipes.Configuration.Visualization
 {
-    public interface INode<T> : ILabeled
+    public interface INode : ILabeled
     {
-        T Item { get; }
+        object Item { get; }
 
-        ISet<IEdge<T>> OutEdges { get; }
-        ISet<IEdge<T>> InEdges { get; }
+        ISet<IEdge> OutEdges { get; }
+        ISet<IEdge> InEdges { get; }
     }
 }

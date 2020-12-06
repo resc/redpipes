@@ -16,7 +16,7 @@ namespace RedPipes.Patterns.Rpc
         public async Task Execute(IContext ctx, string[] value)
         {
             var requestPipe = await Pipe
-                    .Builder.For<string[]>()
+                    .Build.For<string[]>()
                     .WithRpcProvider(this, new RpcOptions { Timeout = TimeSpan.FromSeconds(5) })
                     .OnRpcResponse<string>(pipe => pipe
                         .UseAsync(async (c, response) => await Console.Out.WriteLineAsync("Jay! I got a response!")))

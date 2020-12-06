@@ -36,15 +36,15 @@ namespace RedPipes.Patterns.Rpc
 
         public async Task Call<TRequest, TResponse>(IContext ctx, IRpcRequest<TRequest, TResponse> request, [NotNull] Pipe.ExecuteAsync<TResponse> onResponse, Pipe.ExecuteAsync<Exception> onError = null) where TRequest : IRpcRequest<TRequest, TResponse>
         {
-            var responseBuilder = Pipe.Builder.For<TResponse>().UseAsync(onResponse);
-            var errorBuilder = onError == null ? null : Pipe.Builder.For<Exception>().UseAsync(onError);
+            var responseBuilder = Pipe.Build.For<TResponse>().UseAsync(onResponse);
+            var errorBuilder = onError == null ? null : Pipe.Build.For<Exception>().UseAsync(onError);
             await Call(ctx, request, responseBuilder, errorBuilder);
         }
 
         public async Task Call<TRequest, TResponse>(IContext ctx, TRequest request, [NotNull] Pipe.ExecuteAsync<TResponse> onResponse, Pipe.ExecuteAsync<Exception> onError = null)
         {
-            var responseBuilder = Pipe.Builder.For<TResponse>().UseAsync(onResponse);
-            var errorBuilder = onError == null ? null : Pipe.Builder.For<Exception>().UseAsync(onError);
+            var responseBuilder = Pipe.Build.For<TResponse>().UseAsync(onResponse);
+            var errorBuilder = onError == null ? null : Pipe.Build.For<Exception>().UseAsync(onError);
             await Call(ctx, request, responseBuilder, errorBuilder);
         }
 
@@ -54,7 +54,7 @@ namespace RedPipes.Patterns.Rpc
                 throw new ArgumentNullException(nameof(onResponse));
 
             var responsePipe = await onResponse.Build();
-            var errorPipe = onError == null ? new NullPipe<Exception>() : await onError.Build();
+            var errorPipe = onError == null ? Pipe.End<Exception>() : await onError.Build();
             await Call(ctx, request, responsePipe, errorPipe);
         }
 
