@@ -77,13 +77,13 @@ namespace RedPipes.Patterns.Rpc
 
             public IBuilder<TIn, TResponse> OnRpcError<TError>(Func<IBuilder<TError, TError>, IBuilder<TError, TError>> onErrorPipeBuilder) where TError : Exception
             {
-                var errorPipeBuilder = onErrorPipeBuilder(Pipe.Build.For<TError>());
+                var errorPipeBuilder = onErrorPipeBuilder(Pipe.Build<TError>());
                 return _builder.Transform().Use(new Builder<TRequest, TResponse, TError>(_provider, _options.Clone(), _responsePipeBuilder, errorPipeBuilder));
             }
 
             IOnRpcError<TIn, TR> IOnRpcResponse<TIn, TRequest>.OnRpcResponse<TR>(Func<IBuilder<TR, TR>, IBuilder<TR, TR>> onResponse)
             {
-                var responsePipeBuilder = onResponse(Pipe.Build.For<TR>());
+                var responsePipeBuilder = onResponse(Pipe.Build<TR>());
                 return new RpcPipeBuilder<TIn, TRequest, TR>(_builder, _provider, _options, responsePipeBuilder);
             }
         }

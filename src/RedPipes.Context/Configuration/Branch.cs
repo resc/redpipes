@@ -34,7 +34,7 @@ namespace RedPipes.Configuration
                 throw new ArgumentNullException(nameof(trueBranch));
             }
 
-            var tb = Pipe.Build.For<TOut>().UseAsync(trueBranch);
+            var tb = Pipe.Build<TOut>().UseAsync(trueBranch);
             return builder.UseBranch(condition, tb, Builder.Unit<TOut>(), conditionDescription);
         }
 
@@ -91,7 +91,7 @@ namespace RedPipes.Configuration
             [NotNull] Delegated.Pipe<TOut> trueBranch,
             string conditionDescription = null)
         {
-            var tb = Pipe.Build.For<TOut>().UseAsync(trueBranch);
+            var tb = Pipe.Build<TOut>().UseAsync(trueBranch);
             return builder.UseAlternate(condition, tb, conditionDescription);
         }
 

@@ -14,8 +14,7 @@ namespace RedPipes.Configuration
         {
             var actual = new List<int>();
 
-            var builder = Pipe
-                .Build.For<List<int>>()
+            var builder = Pipe.Build<List<int>>()
                 .Use((ctx, list) => list.Add(1))
                 .Use((ctx, list) => list.Add(2)).Transform().Use((ctx, list) =>
                 {

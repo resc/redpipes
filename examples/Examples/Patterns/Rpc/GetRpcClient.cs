@@ -97,7 +97,7 @@ namespace RedPipes.Patterns.Rpc
 
         private static Task<IPipe<Exception>> GetExceptionPipe()
         {
-            return Pipe.Build.For<Exception>()
+            return Pipe.Build<Exception>()
                 .Transform().Use((responseCtx, exception) => (responseCtx, exception.ToString()))
                 .UseAsync(async (responseCtx, exception) =>
                 {
@@ -110,8 +110,7 @@ namespace RedPipes.Patterns.Rpc
 
         private static async Task<IPipe<ListResponse>> GetResponsePipe()
         {
-            return await Pipe
-                    .Build.For<ListResponse>()
+            return await Pipe.Build<ListResponse>()
                     .Transform().Use((responseCtx, response) => (responseCtx, response.ToString()))
                     .UseAsync(async (responseCtx, response) =>
                     {

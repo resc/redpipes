@@ -17,12 +17,10 @@ namespace RedPipes.Patterns.Auth
 
         public async Task Execute(IContext c, string[] args)
         {
-            var accessDenied = Pipe
-                .Build.For<Request>()
+            var accessDenied = Pipe.Build<Request>()
                 .UseAsync(AccessDenied);
 
-            var builder = Pipe
-                .Build.For<string[]>()
+            var builder = Pipe.Build<string[]>()
                 .Transform().Use(ArgsToRequest)
                 .UsePrincipalProvider(BearerTokenPrincipalProvider)
                 .UseAuthPolicy(p => p.HasRole("admin").And(p.IsAfter(startDate)), accessDenied)

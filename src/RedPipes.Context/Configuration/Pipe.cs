@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
-using RedPipes.Configuration.Visualization;
 
 namespace RedPipes.Configuration
 {
@@ -14,25 +13,28 @@ namespace RedPipes.Configuration
         /// <summary>Represents the <see cref="IPipe{T}.Execute"/> function. </summary>
         public delegate Task ExecuteAsync<in T>(IContext ctx, T value);
 
-        /// <summary> Untyped entry point for building pipes </summary>
-        public static IBuilderProvider Build
+        /// <summary> Untyped entry point for building pipes, use for extensions that want to determine the pipe type themselves </summary>
+        public static IBuilder Build()
         {
-            get { return BuilderProvider.Instance; }
+            return Builder.Unit<object>();
         }
 
-        public static IBuilder<T, T> For<T>()
+        /// <summary> Typed entry point for building pipes </summary>
+        public static IBuilder<T, T> Build<T>()
         {
-            return Build.For<T>();
+            return Builder.Unit<T>();
         }
 
-        public static IPipe<T> End<T>()
+        /// <summary> This pipe does nothing, and doesn't pass on execution to the next pipe </summary>
+        public static IPipe<T> Stop<T>()
         {
-            return new Pipe<T>("End");
+            return new Pipe<T>("Stop");
         }
 
+        /// <summary> This pipe does nothing, and doesn't pass on execution to the next pipe </summary>
         public static IBuilder<TIn, TOut> StopProcessing<TIn, TOut>(this IBuilder<TIn, TOut> input)
         {
-            return input.Use(next => End<TOut>(), "End");
+            return input.Use(next => Stop<TOut>(), "Stop");
         }
 
         /// <summary> Links <paramref name="input"/> pipe to <paramref name="output"/> pipe</summary>
@@ -51,7 +53,6 @@ namespace RedPipes.Configuration
         }
 
         /// <summary>
-        /// Adds the <paramref name="builderFunc"/> delegate in the pipeline. 
         /// Adds the <paramref name="builderFunc"/> delegate in the pipeline. 
         /// </summary>
         public static IBuilder<TIn, TOut> Use<TIn, TOut>(this IBuilder<TIn, TOut> builder, [NotNull] Func<IPipe<TOut>, IPipe<TOut>> builderFunc, string builderName = null)
