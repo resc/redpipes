@@ -24,14 +24,14 @@ namespace RedPipes.Configuration.Visualization
 
             public IDictionary<string, object> Labels { get; }
 
-            public Labeled(int id, IDictionary<string, object> labels)
+            public Labeled(int id, IDictionary<string, object>? labels)
             {
                 Id = id;
                 Labels = new SortedDictionary<string, object>(StringComparer.Ordinal);
                 AddLabels(labels);
             }
 
-            public void AddLabels(IDictionary<string, object> labels)
+            public void AddLabels(IDictionary<string, object>? labels)
             {
                 if (labels == null) return;
                 foreach (var kv in labels)
@@ -68,7 +68,7 @@ namespace RedPipes.Configuration.Visualization
             public INode Source { get; }
             public INode Target { get; }
 
-            public Edge(int id, [NotNull] INode source, [NotNull] INode target, IDictionary<string, object> labels) : base(id, labels)
+            public Edge(int id, [NotNull] INode source, [NotNull] INode target, IDictionary<string, object>? labels) : base(id, labels)
             {
                 Source = source ?? throw new ArgumentNullException(nameof(source));
                 Target = target ?? throw new ArgumentNullException(nameof(target));
@@ -137,26 +137,6 @@ namespace RedPipes.Configuration.Visualization
 
         #endregion
 
-        #region ReferenceEqualityComparer
-
-        class ReferenceEqualityComparer<T> : IEqualityComparer<T> where T : class
-        {
-            public static IEqualityComparer<T> Default { get; } = new ReferenceEqualityComparer<T>();
-
-            private ReferenceEqualityComparer() { }
-
-            public bool Equals(T x, T y)
-            {
-                return ReferenceEquals(x, y);
-            }
-
-            public int GetHashCode(T obj)
-            {
-                return obj.GetHashCode();
-            }
-        }
-
-        #endregion
 
         private int _nextId;
 
@@ -175,7 +155,6 @@ namespace RedPipes.Configuration.Visualization
 
         public INode GetOrAddNode(T item)
         {
-            if (item == null) return null;
             if (!_nodes.TryGetValue(item, out var node))
             {
                 node = new Node(NextId(), item);
@@ -185,23 +164,41 @@ namespace RedPipes.Configuration.Visualization
             return node;
         }
 
-        public virtual bool AddEdge(T source, T target, IDictionary<string, object> labels = null)
+        public virtual bool AddEdge(T source, T target, IDictionary<string, object>? labels = null)
         {
             var src = GetOrAddNode(source);
-            var tgt = GetOrAddNode(target);
-
-            if (src != null && tgt != null)
-            {
-                var edge = new Edge(NextId(), src, tgt, labels);
-                return src.OutEdges.Add(edge) && tgt.InEdges.Add(edge);
-            }
-
-            return false;
+            var tgt = GetOrAddNode(target); 
+            var edge = new Edge(NextId(), src, tgt, labels);
+            return src.OutEdges.Add(edge) && tgt.InEdges.Add(edge); 
         }
 
         private int NextId()
         {
             return Interlocked.Increment(ref _nextId);
+
+
         }
     }
+
+    #region ReferenceEqualityComparer
+
+    class ReferenceEqualityComparer<T> : IEqualityComparer<T> where T : class
+    {
+        public static IEqualityComparer<T> Default { get; } = new ReferenceEqualityComparer<T>();
+
+        private ReferenceEqualityComparer() { }
+
+        public bool Equals(T x, T y)
+        {
+            return ReferenceEquals(x, y);
+        }
+
+        public int GetHashCode(T obj)
+        {
+            return obj.GetHashCode();
+        }
+    }
+
+    #endregion
+
 }

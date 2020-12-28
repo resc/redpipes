@@ -12,7 +12,7 @@ namespace RedPipes.Configuration
     {
         protected string Name { get; }
 
-        protected Builder(string name = null)
+        protected Builder(string? name = null)
         {
             Name = name ?? GetType().GetCSharpName();
         }

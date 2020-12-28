@@ -6,6 +6,8 @@ namespace RedPipes
     /// <summary> A pipe that doesn't do anything </summary>
     public class Pipe<T> : IPipe<T>
     {
+        
+        
         private readonly string _name;
         
         public Pipe(string name)

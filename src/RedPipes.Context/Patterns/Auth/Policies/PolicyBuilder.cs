@@ -7,9 +7,9 @@ namespace RedPipes.Patterns.Auth.Policies
 {
     public class PolicyBuilder<T>
     {
-        private readonly Policy<T> _pol;
+        private readonly Policy<T>? _pol;
 
-        public PolicyBuilder(Policy<T> pol)
+        public PolicyBuilder(Policy<T>? pol)
         {
             _pol = pol;
         }
@@ -38,7 +38,7 @@ namespace RedPipes.Patterns.Auth.Policies
 
         public PolicyBuilder<T> Combine(Strategy strategy, params Policy<T>[] policies)
         {
-            var pp = new[] { _pol }.Concat(policies).Where(x => x != null).ToArray();
+            var pp = policies.Prepend(_pol).Where(x => x != null).Cast<Policy<T>>().ToArray();
             var policy = new CompositePolicy<T>(PolicyNameFor(strategy), strategy, pp);
             return new PolicyBuilder<T>(policy);
         }
@@ -70,7 +70,7 @@ namespace RedPipes.Patterns.Auth.Policies
 
         #endregion
 
-        public PolicyBuilder<T> IsTimeOfDay(TimeSpan startUtc, TimeSpan endUtcExclusive, Func<TimeSpan> timeOfDayUtc = null)
+        public PolicyBuilder<T> IsTimeOfDay(TimeSpan startUtc, TimeSpan endUtcExclusive, Func<TimeSpan>? timeOfDayUtc = null)
         {
             timeOfDayUtc ??= () => DateTimeOffset.UtcNow.TimeOfDay;
 
@@ -94,21 +94,21 @@ namespace RedPipes.Patterns.Auth.Policies
             return DateTimeOffset.UtcNow;
         }
 
-        public PolicyBuilder<T> IsAfter(DateTimeOffset startDateUtc, Func<DateTimeOffset> timeOfDayUtc = null)
+        public PolicyBuilder<T> IsAfter(DateTimeOffset startDateUtc, Func<DateTimeOffset>? timeOfDayUtc = null)
         {
             timeOfDayUtc ??= SystemDateTime;
             return new PolicyBuilder<T>(new DateRangePolicy<T>(startDateUtc, DateTimeOffset.MaxValue, timeOfDayUtc));
 
         }
 
-        public PolicyBuilder<T> IsBefore(DateTimeOffset endDateUtc, Func<DateTimeOffset> timeOfDayUtc = null)
+        public PolicyBuilder<T> IsBefore(DateTimeOffset endDateUtc, Func<DateTimeOffset>? timeOfDayUtc = null)
         {
             timeOfDayUtc ??= SystemDateTime;
             return new PolicyBuilder<T>(new DateRangePolicy<T>(DateTimeOffset.MinValue, endDateUtc, timeOfDayUtc));
 
         }
 
-        public PolicyBuilder<T> IsBetween(DateTimeOffset startDateUtc, DateTimeOffset endDateUtc, Func<DateTimeOffset> timeOfDayUtc = null)
+        public PolicyBuilder<T> IsBetween(DateTimeOffset startDateUtc, DateTimeOffset endDateUtc, Func<DateTimeOffset>? timeOfDayUtc = null)
         {
             timeOfDayUtc ??= SystemDateTime;
             if (startDateUtc > endDateUtc)
@@ -118,7 +118,7 @@ namespace RedPipes.Patterns.Auth.Policies
 
         }
 
-        public PolicyBuilder<T> IsDayOfWeek(Func<DayOfWeek> dayOfWeek = null, params DayOfWeek[] days)
+        public PolicyBuilder<T> IsDayOfWeek(Func<DayOfWeek>? dayOfWeek = null, params DayOfWeek[] days)
         {
             dayOfWeek ??= () => DateTimeOffset.UtcNow.DayOfWeek;
             return new PolicyBuilder<T>(new DayOfWeekPolicy<T>(days, dayOfWeek));

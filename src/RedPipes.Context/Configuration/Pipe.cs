@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Security.Principal;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using RedPipes.Configuration.Visualization;
 
 namespace RedPipes.Configuration
 {
@@ -47,7 +49,7 @@ namespace RedPipes.Configuration
         }
 
         /// <summary> Sets up a builder for a transformation <see cref="IPipe{T}"/> </summary>
-        public static ITransformBuilder<TIn, TOut> Transform<TIn, TOut>(this IBuilder<TIn, TOut> input, string transformName = null)
+        public static ITransformBuilder<TIn, TOut> Transform<TIn, TOut>(this IBuilder<TIn, TOut> input, string? transformName = null)
         {
             return new TransformBuilder<TIn, TOut>(input, transformName);
         }
@@ -55,7 +57,7 @@ namespace RedPipes.Configuration
         /// <summary>
         /// Adds the <paramref name="builderFunc"/> delegate in the pipeline. 
         /// </summary>
-        public static IBuilder<TIn, TOut> Use<TIn, TOut>(this IBuilder<TIn, TOut> builder, [NotNull] Func<IPipe<TOut>, IPipe<TOut>> builderFunc, string builderName = null)
+        public static IBuilder<TIn, TOut> Use<TIn, TOut>(this IBuilder<TIn, TOut> builder, [NotNull] Func<IPipe<TOut>, IPipe<TOut>> builderFunc, string? builderName = null)
         {
             if (builderFunc == null)
             {
@@ -68,8 +70,9 @@ namespace RedPipes.Configuration
         /// <summary>
         /// Adds the <paramref name="builderFunc"/> delegate in the pipeline. 
         /// </summary>
-        public static IBuilder<TIn, TOut> UseAsync<TIn, TOut>(this IBuilder<TIn, TOut> builder, [NotNull] Func<IPipe<TOut>, Task<IPipe<TOut>>> builderFunc,
-            string builderName = null)
+        public static IBuilder<TIn, TOut> UseAsync<TIn, TOut>(this IBuilder<TIn, TOut> builder,
+            Func<IPipe<TOut>, Task<IPipe<TOut>>> builderFunc,
+            string? builderName = null)
         {
             if (builderFunc == null)
             {
@@ -80,5 +83,4 @@ namespace RedPipes.Configuration
         }
     }
 
-
-}
+ }

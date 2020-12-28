@@ -26,7 +26,7 @@ namespace RedPipes.Patterns.Auth.Policies
 
         public override Decision Decide(IContext ctx, T value, out PolicyResult<T>[] associatedResults)
         {
-            associatedResults = null;
+            associatedResults = Array.Empty<PolicyResult<T>>();
             var tod = _timeOfDayUtc();
             if (_start <= tod && tod < _endExclusive)
                 return Decision.Permit;

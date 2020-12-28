@@ -6,7 +6,7 @@ namespace RedPipes.Patterns.Auth.Policies
     {
         public static readonly PolicyResult<T>[] EmptyResults = new PolicyResult<T>[0];
 
-        public PolicyResult(Policy<T> policy, Decision decision, IReadOnlyCollection<PolicyResult<T>> associatedResults = null)
+        public PolicyResult(Policy<T> policy, Decision decision, IReadOnlyCollection<PolicyResult<T>>? associatedResults = null)
         {
             Policy = policy;
             Decision = decision;

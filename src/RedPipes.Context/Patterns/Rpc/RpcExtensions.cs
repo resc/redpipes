@@ -11,7 +11,7 @@ namespace RedPipes.Patterns.Rpc
     {
         private static readonly object _rpcProviderKey = Context.NewKey("RpcProvider");
 
-        public static IOnRpcResponse<TIn, TRequest> WithRpcProvider<TIn, TRequest>(this IBuilder<TIn, TRequest> builder, IRpcProvider provider, RpcOptions options = null)
+        public static IOnRpcResponse<TIn, TRequest> WithRpcProvider<TIn, TRequest>(this IBuilder<TIn, TRequest> builder, IRpcProvider provider, RpcOptions? options = null)
         {
             return new RpcPipeBuilder<TIn, TRequest, Exception>(builder, provider, options);
         }
@@ -66,13 +66,13 @@ namespace RedPipes.Patterns.Rpc
             private readonly RpcOptions _options;
             private readonly IBuilder<TResponse, TResponse> _responsePipeBuilder;
 
-            public RpcPipeBuilder(IBuilder<TIn, TRequest> builder, IRpcProvider provider, RpcOptions options = null,
-                IBuilder<TResponse, TResponse> responsePipeBuilder = null)
+            public RpcPipeBuilder(IBuilder<TIn, TRequest> builder, IRpcProvider provider, RpcOptions? options = null,
+                IBuilder<TResponse, TResponse>? responsePipeBuilder = null)
             {
                 _builder = builder;
                 _provider = provider;
-                _options = options;
-                _responsePipeBuilder = responsePipeBuilder;
+                _options = options ?? new RpcOptions();
+                _responsePipeBuilder = responsePipeBuilder ?? Pipe.Build<TResponse>();
             }
 
             public IBuilder<TIn, TResponse> OnRpcError<TError>(Func<IBuilder<TError, TError>, IBuilder<TError, TError>> onErrorPipeBuilder) where TError : Exception
@@ -125,10 +125,9 @@ namespace RedPipes.Patterns.Rpc
             private readonly IRpcProvider _rpc;
             private readonly RpcOptions _options;
             private readonly IPipe<TResponse> _onResponse;
-            [CanBeNull]
-            private readonly IPipe<TException> _onException;
+            private readonly IPipe<TException>? _onException;
 
-            public Pipe([NotNull] IRpcProvider rpc, [NotNull] RpcOptions options, [NotNull] IPipe<TResponse> onResponse, IPipe<TException> onException = null)
+            public Pipe([NotNull] IRpcProvider rpc, [NotNull] RpcOptions options, [NotNull] IPipe<TResponse> onResponse, IPipe<TException>? onException = null)
             {
                 _rpc = rpc ?? throw new ArgumentNullException(nameof(rpc));
                 _options = options ?? throw new ArgumentNullException(nameof(options));
@@ -169,9 +168,12 @@ namespace RedPipes.Patterns.Rpc
                 visitor.GetOrAddNode(this, (Keys.Name, label));
                 if (visitor.AddEdge(this, _onResponse, (Keys.Name, "Response")))
                     _onResponse.Accept(visitor);
-
-                if (visitor.AddEdge(this, _onException, (Keys.Name, "Exception")))
-                    _onException.Accept(visitor);
+                
+                if (_onException != null)
+                {
+                    if (visitor.AddEdge(this, _onException, (Keys.Name, "Exception")))
+                        _onException.Accept(visitor);
+                }
             }
         }
     }

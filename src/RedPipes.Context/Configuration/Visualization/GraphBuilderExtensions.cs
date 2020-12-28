@@ -9,8 +9,8 @@ namespace RedPipes.Configuration.Visualization
     {
         public static bool AddEdge<T>(this IGraphBuilder<T> visitor, T source, T target, params (string Label, object Value)[] labels)
         {
-            Dictionary<string, object> dict = null;
-            if (labels != null && labels.Length > 0)
+            Dictionary<string, object>? dict = null;
+            if (  labels.Length > 0)
                 dict = labels.ToDictionary(x => x.Label, x => x.Value);
 
             return visitor.AddEdge(source, target, dict);

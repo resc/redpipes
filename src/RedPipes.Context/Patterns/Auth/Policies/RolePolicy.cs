@@ -30,7 +30,7 @@ namespace RedPipes.Patterns.Auth.Policies
 
         public override Decision Decide(IContext ctx, T value, out PolicyResult<T>[] associatedResults)
         {
-            associatedResults = null;
+            associatedResults = Array.Empty<PolicyResult<T>>();
             var p = ctx.GetPrincipal();
 
             var count = 0;

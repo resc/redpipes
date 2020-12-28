@@ -14,10 +14,10 @@ namespace RedPipes.Configuration
             this IBuilder<TIn, TOut> builder,
             [NotNull] Func<IContext, TOut, TKey> selector,
             [NotNull] IReadOnlyDictionary<TKey, IBuilder<TOut, TOut>> cases,
-             IBuilder<TOut, TOut> defaultCase = null,
-            IEqualityComparer<TKey> keyComparer = null,
+             IBuilder<TOut, TOut>? defaultCase = null,
+            IEqualityComparer<TKey>? keyComparer = null,
             bool fallThrough = false,
-            string switchName = null)
+            string? switchName = null)
         {
             if (selector == null)
             {
@@ -29,8 +29,8 @@ namespace RedPipes.Configuration
                 throw new ArgumentNullException(nameof(cases));
             }
 
-            var defaultCalse = defaultCase ?? Builder.Unit<TOut>();
-            return Builder.Join(builder, new Builder<TOut, TKey>(selector, cases, defaultCalse, keyComparer, fallThrough, switchName));
+            defaultCase ??= Builder.Unit<TOut>();
+            return Builder.Join(builder, new Builder<TOut, TKey>(selector, cases, defaultCase, keyComparer, fallThrough, switchName));
         }
 
         class Builder<T, TKey> : Builder, IBuilder<T, T>
@@ -43,9 +43,9 @@ namespace RedPipes.Configuration
             public Builder(Func<IContext, T, TKey> selector,
                 IReadOnlyDictionary<TKey, IBuilder<T, T>> cases,
                 IBuilder<T, T> defaultCase,
-                IEqualityComparer<TKey> keyComparer,
+                IEqualityComparer<TKey>? keyComparer,
                 bool fallThrough,
-                string switchName = null) : base(switchName)
+                string? switchName = null) : base(switchName)
             {
                 _selector = selector;
                 keyComparer ??= EqualityComparer<TKey>.Default;
@@ -97,7 +97,7 @@ namespace RedPipes.Configuration
             private readonly IPipe<T> _defaultCase;
             private readonly string _name;
 
-            public Pipe(Func<IContext, T, TKey> getKey, IReadOnlyDictionary<TKey, IPipe<T>> cases, IPipe<T> defaultCase, string name = null)
+            public Pipe(Func<IContext, T, TKey> getKey, IReadOnlyDictionary<TKey, IPipe<T>> cases, IPipe<T> defaultCase, string? name = null)
             {
                 _getKey = getKey;
                 _cases = cases;

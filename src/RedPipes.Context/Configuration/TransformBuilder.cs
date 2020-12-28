@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using RedPipes.Configuration.Visualization;
 
 namespace RedPipes.Configuration
 {
@@ -9,10 +10,10 @@ namespace RedPipes.Configuration
         private readonly IBuilder<TIn, T> _input;
         private readonly string _builderName;
 
-        public TransformBuilder([NotNull] IBuilder<TIn, T> input, string builderName = null)
+        public TransformBuilder([NotNull] IBuilder<TIn, T> input, string? builderName = null)
         {
             _input = input ?? throw new ArgumentNullException(nameof(input));
-            _builderName = builderName;
+            _builderName = builderName ?? GetType().GetCSharpName();
         }
 
         public IBuilder<TIn, TOut> Use<TOut>([NotNull] IBuilder<T, TOut> transform)
@@ -28,7 +29,7 @@ namespace RedPipes.Configuration
     {
         private readonly Func<IPipe<TOut>, IPipe<TIn>> _build;
 
-        public DelegateBuilder([NotNull] Func<IPipe<TOut>, IPipe<TIn>> build, string builderName = null) : base(builderName)
+        public DelegateBuilder([NotNull] Func<IPipe<TOut>, IPipe<TIn>> build, string? builderName = null) : base(builderName)
         {
             _build = build ?? throw new ArgumentNullException(nameof(build));
         }
@@ -43,7 +44,7 @@ namespace RedPipes.Configuration
     {
         private readonly Func<IPipe<TOut>, Task<IPipe<TIn>>> _buildAsync;
 
-        public AsyncDelegateBuilder([NotNull] Func<IPipe<TOut>, Task<IPipe<TIn>>> buildAsync, string builderName = null) : base(builderName)
+        public AsyncDelegateBuilder([NotNull] Func<IPipe<TOut>, Task<IPipe<TIn>>> buildAsync, string? builderName = null) : base(builderName)
         {
             _buildAsync = buildAsync ?? throw new ArgumentNullException(nameof(buildAsync));
         }

@@ -29,7 +29,7 @@ namespace RedPipes.Patterns.Auth.Policies
 
             if (n == 0)
             {
-                associatedResults = null;
+                associatedResults = Array.Empty<PolicyResult<T>>();
                 return Decision.Deny;
             }
 

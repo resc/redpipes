@@ -1,4 +1,5 @@
-﻿using JetBrains.Annotations;
+﻿using System;
+using JetBrains.Annotations;
 
 namespace RedPipes.Patterns.Auth.Policies
 {
@@ -26,7 +27,7 @@ namespace RedPipes.Patterns.Auth.Policies
         public string Name { get; }
 
 
-        public PolicyResult<T> Evaluate(IContext ctx,T value)
+        public PolicyResult<T> Evaluate(IContext ctx, T value)
         {
             var decision = Decide(ctx, value, out var associatedResults);
             return new PolicyResult<T>(this, decision, associatedResults);
@@ -34,7 +35,7 @@ namespace RedPipes.Patterns.Auth.Policies
 
         public virtual Decision Decide(IContext ctx, T value, out PolicyResult<T>[] associatedResults)
         {
-            associatedResults = null;
+            associatedResults = Array.Empty<PolicyResult<T>>();
             return Decision.None;
         }
 

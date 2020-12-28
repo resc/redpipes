@@ -12,28 +12,24 @@ namespace RedPipes.Patterns.Rpc
                 return new RpcOptions
                 {
                     EndPoint = "",
-                    Timeout = TimeSpan.FromSeconds(60),
+                    Timeout = TimeSpan.FromSeconds(60), 
                 };
             }
         }
 
-        public string EndPoint { get; set; }
-
+        public string EndPoint { get; set; } = "";
+        
         public TimeSpan Timeout { get; set; }
 
-        public IDictionary<string, object> Config { get; set; }
+        public IDictionary<string, object> Config { get; set; } = new Dictionary<string, object>();
 
         public RpcOptions Clone()
         {
-            var config = Config;
-            if (config != null)
-                config = new Dictionary<string, object>(config);
-
             return new RpcOptions
             {
                 Timeout = Timeout,
                 EndPoint = EndPoint,
-                Config = config,
+                Config = new Dictionary<string, object>(Config),
             };
         }
     }

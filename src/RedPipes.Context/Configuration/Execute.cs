@@ -10,7 +10,7 @@ namespace RedPipes.Configuration
         /// Adds the <paramref name="execute"/> delegate in the pipeline
         /// and unconditionally executes the next pipe
         /// </summary>
-        public static IBuilder<TIn, TOut> Use<TIn, TOut>(this IBuilder<TIn, TOut> builder, Pipe.Execute<TOut> execute, string name = null)
+        public static IBuilder<TIn, TOut> Use<TIn, TOut>(this IBuilder<TIn, TOut> builder, Pipe.Execute<TOut> execute, string? name = null)
         {
             return builder.Use(next => new Pipe<TOut>((ctx, value) =>
             {
@@ -23,7 +23,7 @@ namespace RedPipes.Configuration
         /// Adds the <paramref name="executeAsyncAsync"/> delegate in the pipeline
         /// and unconditionally executes the next pipe
         /// </summary>
-        public static IBuilder<TIn, TOut> UseAsync<TIn, TOut>(this IBuilder<TIn, TOut> builder, Pipe.ExecuteAsync<TOut> executeAsyncAsync, string name = null)
+        public static IBuilder<TIn, TOut> UseAsync<TIn, TOut>(this IBuilder<TIn, TOut> builder, Pipe.ExecuteAsync<TOut> executeAsyncAsync, string? name = null)
         {
             return builder.Use(next => new Pipe<TOut>(executeAsyncAsync, next, name), name);
         }
@@ -34,11 +34,11 @@ namespace RedPipes.Configuration
             private readonly IPipe<T> _next;
             private readonly string _name;
 
-            public Pipe(Pipe.ExecuteAsync<T> executeAsync, IPipe<T> next, string name)
+            public Pipe(Pipe.ExecuteAsync<T> executeAsync, IPipe<T> next, string? name)
             {
                 _executeAsync = executeAsync;
                 _next = next;
-                _name = name;
+                _name = name?? GenerateName();
             }
 
             public async Task Execute(IContext ctx, T value)
@@ -49,10 +49,14 @@ namespace RedPipes.Configuration
 
             public void Accept(IGraphBuilder<IPipe> visitor)
             {
-                var name = _name ?? $"Execute ({nameof(IContext)} ctx, {typeof(T).GetCSharpName()} value) => {{ ... }}";
-                visitor.GetOrAddNode(this, (Keys.Name, name));
+                visitor.GetOrAddNode(this, (Keys.Name, _name));
                 if (visitor.AddEdge(this, _next, (Keys.Name, "Next")))
                     _next.Accept(visitor);
+            }
+
+            private static string GenerateName()
+            {
+                return $"Execute ({nameof(IContext)} ctx, {typeof(T).GetCSharpName()} value) => {{ ... }}";
             }
         }
 

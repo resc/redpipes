@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 
 namespace RedPipes
 {
@@ -11,9 +12,9 @@ namespace RedPipes
             public CancellationToken Token
             {
                 get { return CancellationToken.None; }
-            } 
+            }
 
-            public bool TryGetValue<T>(object key, out T value)
+            public bool TryGetValue<T>(object key, [MaybeNullWhen(false)] out T value)
             {
                 value = default;
                 return false;

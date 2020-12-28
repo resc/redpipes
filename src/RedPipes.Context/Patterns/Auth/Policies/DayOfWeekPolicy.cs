@@ -17,7 +17,7 @@ namespace RedPipes.Patterns.Auth.Policies
 
         public override Decision Decide(IContext ctx, T value, out PolicyResult<T>[] associatedResults)
         {
-            associatedResults = null;
+            associatedResults = Array.Empty<PolicyResult<T>>();
             var dayOfWeek = _dayOfWeek();
 
             foreach (var day in _days)

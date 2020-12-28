@@ -17,6 +17,6 @@ namespace RedPipes.Configuration.Visualization
         /// <param name="source"></param>
         /// <param name="target"></param>
         /// <param name="labels">labels for the edge, see <see cref="Keys"/> for standard label keys</param>
-        bool AddEdge(T source, T target, IDictionary<string, object> labels = null);
+        bool AddEdge(T source, T target, IDictionary<string, object>? labels = null);
     }
 }

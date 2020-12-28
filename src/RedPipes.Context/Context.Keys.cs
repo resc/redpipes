@@ -4,16 +4,16 @@
     {
         private sealed class Key
         {
-            private readonly string _name;
+            private  string? _name;
 
-            public Key(string name)
+            public Key(string? name)
             {
                 _name = name;
             }
 
             public override string ToString()
             {
-                return _name ?? base.ToString();
+                return _name ??= $"Key #{GetHashCode():X8}";
             }
         }
 
@@ -24,7 +24,7 @@
         }
 
         /// <summary> returns a new key with the given name ( the name is for debugging purposes only ) </summary>
-        public static object NewKey(string name)
+        public static object NewKey(string? name)
         {
             return new Key(name);
         }

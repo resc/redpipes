@@ -13,15 +13,15 @@ namespace RedPipes
         /// <summary> Creates a <see cref="IDisposable"/> from an <see cref="Action"/>,
         /// the <paramref name="action"/> always called exactly once, regardless of how many times <see cref="Dispose"/> is called.
         /// <see cref="Create"/> can safely be called with a null <paramref name="action"/> and will return a no-op <see cref="IDisposable"/>.</summary>
-        public static IDisposable Create(Action action)
+        public static IDisposable Create(Action? action)
         {
             if (action == null) return Empty;
             return new Disposable(action);
         }
 
-        private Action _action;
+        private Action? _action;
         
-        private Disposable(Action action)
+        private Disposable(Action? action)
         {
             _action = action;
         }
@@ -31,7 +31,7 @@ namespace RedPipes
         {
             if (_action == null) return;
 
-            var action = Interlocked.Exchange(ref _action, null);
+            var action = Interlocked.Exchange(ref _action, default);
 
             action?.Invoke();
         }

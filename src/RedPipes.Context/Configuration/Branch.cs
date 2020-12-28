@@ -12,7 +12,7 @@ namespace RedPipes.Configuration
         public static IBuilder<TIn, TOut> UseBranch<TIn, TOut>(
             this IBuilder<TIn, TOut> builder,
             [NotNull] Func<IContext, TOut, bool> condition,
-            [NotNull] IBuilder<TOut, TOut> trueBranch, string conditionDescription = null)
+            [NotNull] IBuilder<TOut, TOut> trueBranch, string? conditionDescription = null)
         {
             return builder.UseBranch(condition, trueBranch, Builder.Unit<TOut>(), conditionDescription);
         }
@@ -22,7 +22,7 @@ namespace RedPipes.Configuration
             this IBuilder<TIn, TOut> builder,
             [NotNull] Func<IContext, TOut, bool> condition,
             [NotNull] Delegated.Pipe<TOut> trueBranch,
-            string conditionDescription = null)
+            string? conditionDescription = null)
         {
             if (condition == null)
             {
@@ -44,7 +44,7 @@ namespace RedPipes.Configuration
             [NotNull] Func<IContext, TOut, bool> condition,
             [NotNull] IBuilder<TOut, TOut> trueBranch,
             [NotNull] IBuilder<TOut, TOut> falseBranch,
-            string conditionDescription = null)
+            string? conditionDescription = null)
         {
             if (condition == null)
             {
@@ -69,7 +69,7 @@ namespace RedPipes.Configuration
             this IBuilder<TIn, TOut> builder,
             [NotNull] Func<IContext, TOut, bool> condition,
             [NotNull] IBuilder<TOut, TOut> trueBranch,
-            string conditionDescription = null)
+            string? conditionDescription = null)
         {
             if (condition == null)
             {
@@ -89,7 +89,7 @@ namespace RedPipes.Configuration
             this IBuilder<TIn, TOut> builder,
             [NotNull] Func<IContext, TOut, bool> condition,
             [NotNull] Delegated.Pipe<TOut> trueBranch,
-            string conditionDescription = null)
+            string? conditionDescription = null)
         {
             var tb = Pipe.Build<TOut>().UseAsync(trueBranch);
             return builder.UseAlternate(condition, tb, conditionDescription);
@@ -102,7 +102,7 @@ namespace RedPipes.Configuration
             private readonly IBuilder<T, T> _trueBranch;
             private readonly IBuilder<T, T> _falseBranch;
 
-            public Builder(bool isAlternate, Func<IContext, T, bool> condition, IBuilder<T, T> trueBranch, IBuilder<T, T> falseBranch, string conditionDescription) : base(conditionDescription)
+            public Builder(bool isAlternate, Func<IContext, T, bool> condition, IBuilder<T, T> trueBranch, IBuilder<T, T> falseBranch, string? conditionDescription) : base(conditionDescription)
             {
                 _isAlternate = isAlternate;
                 _condition = condition;

@@ -17,19 +17,19 @@ namespace RedPipes.Configuration
         public delegate Task<(IContext, TOut)> AsyncFunc<in TIn, TOut>(IContext ctx, TIn value);
 
         /// <summary> Applies a transformation function to the pipe </summary>
-        public static IBuilder<TIn, TOut> Use<TIn, T, TOut>(this ITransformBuilder<TIn, T> transformBuilder, Func<T, TOut> transform, string transformName = null)
+        public static IBuilder<TIn, TOut> Use<TIn, T, TOut>(this ITransformBuilder<TIn, T> transformBuilder, Func<T, TOut> transform, string? transformName = null)
         {
             return transformBuilder.Use((ctx, value) => Task.FromResult(transform(ctx, value)),transformName);
         }
 
         /// <summary> Applies a transformation function to the pipe </summary>
-        public static IBuilder<TIn, TOut> Use<TIn, T, TOut>(this ITransformBuilder<TIn, T> transformBuilder, System.Func<T, TOut> transform, string transformName = null)
+        public static IBuilder<TIn, TOut> Use<TIn, T, TOut>(this ITransformBuilder<TIn, T> transformBuilder, System.Func<T, TOut> transform, string? transformName = null)
         {
             return transformBuilder.Use((ctx, value) => Task.FromResult((ctx, transform(value))),transformName);
         }
 
         /// <summary> Applies a transformation function to the pipe </summary>
-        public static IBuilder<TIn, TOut> Use<TIn, T, TOut>(this ITransformBuilder<TIn, T> transformBuilder, AsyncFunc<T, TOut> transform, string transformName = null)
+        public static IBuilder<TIn, TOut> Use<TIn, T, TOut>(this ITransformBuilder<TIn, T> transformBuilder, AsyncFunc<T, TOut> transform, string? transformName = null)
         {
             return transformBuilder.Use(new Builder<T, TOut>(transform,transformName));
         } 
@@ -37,7 +37,7 @@ namespace RedPipes.Configuration
         /// <summary>
         /// Adds the <paramref name="buildTransform"/> delegate in the pipeline.
         /// </summary>
-        public static IBuilder<TIn, TOut> Use<TIn, TOut>(this IBuilder<TIn, TIn> builder, [NotNull] System.Func<IPipe<TOut>, IPipe<TIn>> buildTransform, string transformName )
+        public static IBuilder<TIn, TOut> Use<TIn, TOut>(this IBuilder<TIn, TIn> builder, [NotNull] System.Func<IPipe<TOut>, IPipe<TIn>> buildTransform, string? transformName = null)
         {
             if (buildTransform == null)
             {
@@ -51,7 +51,7 @@ namespace RedPipes.Configuration
         {
             private readonly AsyncFunc<TIn, TOut> _transform;
 
-            public Builder([NotNull] AsyncFunc<TIn, TOut> transform, string name):base(name)
+            public Builder([NotNull] AsyncFunc<TIn, TOut> transform, string? name):base(name)
             {
                 _transform = transform;
             }

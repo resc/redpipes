@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text;
 
 namespace RedPipes
 {
@@ -11,7 +12,7 @@ namespace RedPipes
             EnsureKeyNotNull(key);
             return new ValueContext<T>(ctx, key, value);
         }
-        
+
         /// <summary> Removes the value stored under the given <paramref name="key"/> from the context </summary>
         public static IContext Without(this IContext ctx, object key)
         {
@@ -21,17 +22,17 @@ namespace RedPipes
         }
 
         private class NoValueContext : ContextBase
-        { 
+        {
             private readonly object _key;
 
-            public NoValueContext(IContext inner, object key): base(inner)
-            { 
+            public NoValueContext(IContext inner, object key) : base(inner)
+            {
                 _key = key;
             }
- 
-            public override bool TryGetValue<T>(object key, out T value)
+
+            public override bool TryGetValue<T>(object key, [MaybeNullWhen(false)] out T value)
             {
-                if (!ReferenceEquals(_key, key)) 
+                if (!ReferenceEquals(_key, key))
                     return Inner.TryGetValue(key, out value);
 
                 value = default;
@@ -49,13 +50,13 @@ namespace RedPipes
             private readonly object _key;
             private readonly TValue _value;
 
-            public ValueContext(IContext inner, object key, TValue value): base(inner)
+            public ValueContext(IContext inner, object key, TValue value) : base(inner)
             {
                 _key = key;
                 _value = value;
             }
 
-            public override bool TryGetValue<T>(object key, out T value)
+            public override bool TryGetValue<T>(object key, [MaybeNullWhen(false)] out T value)
             {
                 value = default;
 
@@ -72,9 +73,9 @@ namespace RedPipes
                 return true;
 
             }
-            
+
             public override void ToString(StringBuilder sb, int level)
-            { 
+            {
                 sb.Append("Key: ").Append(_key).Append(", Value: ").Append(_value);
             }
         }
