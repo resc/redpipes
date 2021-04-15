@@ -7,16 +7,20 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Autofac" Version="6.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\RedPipes.Context\RedPipes.csproj" />
-    <ProjectReference Include="..\..\src\RedPipes.Telementry\RedPipes.Telemetry.csproj" />
+    <PackageReference Include="Autofac" Version="6.1.0" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Configuration\Ideas\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\fittings\RedPipes.Auth\RedPipes.Auth.csproj" />
+    <ProjectReference Include="..\..\src\fittings\RedPipes.OpenTelemetry\RedPipes.OpenTelemetry.csproj" />
+    <ProjectReference Include="..\..\src\fittings\RedPipes.Polly\RedPipes.Polly.csproj" />
+    <ProjectReference Include="..\..\src\fittings\RedPipes.RabbitMQ\RedPipes.RabbitMQ.csproj" />
+    <ProjectReference Include="..\..\src\fittings\RedPipes.Rpc\RedPipes.Rpc.csproj" />
+    <ProjectReference Include="..\..\src\RedPipes\RedPipes.csproj" />
   </ItemGroup>
 
 </Project>

@@ -9,7 +9,7 @@ namespace RedPipes.Configuration
         [TestMethod]
         public async Task Test()
         {
-
+            await Task.CompletedTask;
         }
     }
 }

@@ -1,0 +1,1 @@
+﻿metrics will be re-added when OpenTelemetry metrics are released
