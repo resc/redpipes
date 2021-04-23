@@ -38,7 +38,7 @@ jobs:
       run: >-
            dotnet pack
            --configuration Release
-           --no-build \
+           --no-build
            --output "${GITHUB_WORKSPACE}/artifacts"
            -p:Version=${VERSION}
            -p:RepositoryUrl="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
