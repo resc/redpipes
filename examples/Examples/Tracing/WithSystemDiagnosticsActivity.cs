@@ -81,8 +81,9 @@ namespace RedPipes.Tracing
             }
         }
 
-        private static string ToString(object o, int maxLength)
+        private static string ToString(object? o, int maxLength)
         {
+            if (o == null) return "";
             var s = $"{o}".Replace("\r", "").Replace("\n", "\\n");
             if (s.Length > maxLength)
             {
