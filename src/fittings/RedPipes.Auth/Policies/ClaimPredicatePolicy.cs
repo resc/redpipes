@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 
-namespace RedPipes.Patterns.Auth.Policies
+namespace RedPipes.Auth.Policies
 {
     sealed class ClaimPredicatePolicy<T> : Policy<T>
     {
@@ -15,7 +14,7 @@ namespace RedPipes.Patterns.Auth.Policies
             _predicate = predicate ?? throw new ArgumentNullException(nameof(predicate));
         }
 
-        public override Decision Decide(IContext ctx, T value, out PolicyResult<T>[] associatedResults)
+        protected override Decision Decide(IContext ctx, T value, out PolicyResult<T>[] associatedResults)
         {
             associatedResults = Array.Empty<PolicyResult<T>>();
             var p = ctx.GetPrincipal();

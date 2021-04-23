@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace RedPipes.Patterns.Auth.Policies
+namespace RedPipes.Auth.Policies
 {
     sealed class ClaimPolicy<T> : Policy<T>
     {
@@ -13,7 +13,7 @@ namespace RedPipes.Patterns.Auth.Policies
             _claimValue = claimValue;
         }
 
-        public override Decision Decide(IContext ctx, T value, out PolicyResult<T>[] associatedResults)
+        protected override Decision Decide(IContext ctx, T value, out PolicyResult<T>[] associatedResults)
         {
             associatedResults = Array.Empty<PolicyResult<T>>();
             var p = ctx.GetPrincipal();

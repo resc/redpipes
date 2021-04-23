@@ -1,11 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
-namespace RedPipes.Patterns.Auth.Policies
+namespace RedPipes.Auth.Policies
 {
+    /// <summary>  </summary>
     public struct PolicyResult<T>
     {
-        public static readonly PolicyResult<T>[] EmptyResults = new PolicyResult<T>[0];
+        /// <summary>  </summary>
+        public static readonly PolicyResult<T>[] EmptyResults = Array.Empty<PolicyResult<T>>();
 
+        /// <summary>  </summary>
         public PolicyResult(Policy<T> policy, Decision decision, IReadOnlyCollection<PolicyResult<T>>? associatedResults = null)
         {
             Policy = policy;
@@ -13,10 +17,13 @@ namespace RedPipes.Patterns.Auth.Policies
             AssociatedResults = associatedResults ?? EmptyResults;
         }
 
+        /// <summary>  </summary>
         public Policy<T> Policy { get; }
 
+        /// <summary>  </summary>
         public Decision Decision { get; }
 
+        /// <summary>  </summary>
         public IReadOnlyCollection<PolicyResult<T>> AssociatedResults { get; }
     }
 }

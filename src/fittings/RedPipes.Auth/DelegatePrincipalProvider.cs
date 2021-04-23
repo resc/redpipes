@@ -3,7 +3,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 
-namespace RedPipes.Patterns.Auth
+namespace RedPipes.Auth
 {
     class DelegatePrincipalProvider<T> : PrincipalProvider<T>
     {

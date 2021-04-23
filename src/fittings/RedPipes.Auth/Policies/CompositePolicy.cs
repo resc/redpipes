@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace RedPipes.Patterns.Auth.Policies
+namespace RedPipes.Auth.Policies
 {
     sealed class CompositePolicy<T> : Policy<T>, IReadOnlyCollection<Policy<T>>
     {
@@ -23,7 +23,7 @@ namespace RedPipes.Patterns.Auth.Policies
             _policies = policies.ToArray();
         }
 
-        public override Decision Decide(IContext ctx, T value, out PolicyResult<T>[] associatedResults)
+        protected override Decision Decide(IContext ctx, T value, out PolicyResult<T>[] associatedResults)
         { 
             var n = _policies.Length;
 

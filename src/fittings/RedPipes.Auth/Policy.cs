@@ -1,14 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
+using RedPipes.Auth.Policies;
 using RedPipes.Configuration;
 using RedPipes.Configuration.Visualization;
-using RedPipes.Patterns.Auth.Policies;
 
-namespace RedPipes.Patterns.Auth
+namespace RedPipes.Auth
 {
+    /// <summary>
+    /// Pipe policy extensions
+    /// </summary>
     public static class Policy
     {
+        /// <summary> Add authentication policy to the pipeline </summary>
         public static IBuilder<TIn, TOut> UseAuthPolicy<TIn, TOut>(this IBuilder<TIn, TOut> builder, Policy<TOut> policy, IBuilder<TOut, TOut> onDeny)
         {
             if (policy == null)
@@ -17,6 +20,7 @@ namespace RedPipes.Patterns.Auth
             return builder.UseAsync(async (next) => new Pipe<TOut>(policy, await onDeny.Build(), next), policy.Name);
         }
 
+        /// <summary> Add authentication policy to the pipeline </summary>
         public static IBuilder<TIn, TOut> UseAuthPolicy<TIn, TOut>(this IBuilder<TIn, TOut> builder, Func<PolicyBuilder<TOut>, PolicyBuilder<TOut>> configure, IBuilder<TOut, TOut> onDeny)
         {
             if (configure == null)

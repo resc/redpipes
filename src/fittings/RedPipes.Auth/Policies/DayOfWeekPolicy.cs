@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace RedPipes.Patterns.Auth.Policies
+namespace RedPipes.Auth.Policies
 {
     sealed class DayOfWeekPolicy<T> : Policy<T>
     {
@@ -15,7 +15,7 @@ namespace RedPipes.Patterns.Auth.Policies
             _dayOfWeek = dayOfWeek;
         }
 
-        public override Decision Decide(IContext ctx, T value, out PolicyResult<T>[] associatedResults)
+        protected override Decision Decide(IContext ctx, T value, out PolicyResult<T>[] associatedResults)
         {
             associatedResults = Array.Empty<PolicyResult<T>>();
             var dayOfWeek = _dayOfWeek();

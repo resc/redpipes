@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using RedPipes.Auth;
 using RedPipes.Configuration;
 using RedPipes.Configuration.Visualization;
 

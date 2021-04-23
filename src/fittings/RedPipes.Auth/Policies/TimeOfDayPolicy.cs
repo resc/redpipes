@@ -1,7 +1,7 @@
 ﻿using System;
 using JetBrains.Annotations;
 
-namespace RedPipes.Patterns.Auth.Policies
+namespace RedPipes.Auth.Policies
 {
     sealed class TimeOfDayPolicy<T> : Policy<T>
     {
@@ -24,7 +24,7 @@ namespace RedPipes.Patterns.Auth.Policies
             _timeOfDayUtc = timeOfDayUtc ?? throw new ArgumentNullException(nameof(timeOfDayUtc));
         }
 
-        public override Decision Decide(IContext ctx, T value, out PolicyResult<T>[] associatedResults)
+        protected override Decision Decide(IContext ctx, T value, out PolicyResult<T>[] associatedResults)
         {
             associatedResults = Array.Empty<PolicyResult<T>>();
             var tod = _timeOfDayUtc();

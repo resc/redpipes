@@ -1,7 +1,7 @@
 ﻿using System;
 using JetBrains.Annotations;
 
-namespace RedPipes.Patterns.Auth.Policies
+namespace RedPipes.Auth.Policies
 {
     sealed class DateRangePolicy<T> : Policy<T>
     {
@@ -17,7 +17,7 @@ namespace RedPipes.Patterns.Auth.Policies
             _dateTimeUtc = dateTimeUtc ?? throw new ArgumentNullException(nameof(dateTimeUtc));
         }
 
-        public override Decision Decide(IContext ctx, T value, out PolicyResult<T>[] associatedResults)
+        protected override Decision Decide(IContext ctx, T value, out PolicyResult<T>[] associatedResults)
         {
             associatedResults = Array.Empty<PolicyResult<T>>();
             var dto = _dateTimeUtc();

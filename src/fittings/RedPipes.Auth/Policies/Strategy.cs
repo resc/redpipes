@@ -1,4 +1,4 @@
-﻿namespace RedPipes.Patterns.Auth.Policies
+﻿namespace RedPipes.Auth.Policies
 {
     /// <summary> Policy combination strategies </summary>
     public enum Strategy : byte

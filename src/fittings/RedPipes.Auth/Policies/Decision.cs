@@ -1,5 +1,6 @@
-﻿namespace RedPipes.Patterns.Auth.Policies
+﻿namespace RedPipes.Auth.Policies
 {
+    /// <summary> Policy decision outcome </summary>
     public enum Decision : byte
     {
         /// <summary> <see cref="None"/> is used by a <see cref="Policy{T}"/> to indicate it has no opinion on whether or not to permit pipe execution </summary>

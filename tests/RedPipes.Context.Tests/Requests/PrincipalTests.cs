@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using RedPipes.Auth;
 using RedPipes.Patterns.Auth;
 
 namespace RedPipes.Requests

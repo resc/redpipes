@@ -1,13 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using RedPipes.Configuration;
 using RedPipes.Configuration.Visualization;
 
-namespace RedPipes.Patterns.Auth
+namespace RedPipes.Auth
 {
+    /// <summary>  </summary>
     public static class Principal
     {
         private static readonly object _key = Context.NewKey(nameof(Principal));
@@ -21,6 +20,7 @@ namespace RedPipes.Patterns.Auth
                     ClaimsIdentity.DefaultNameClaimType,
                     ClaimsIdentity.DefaultRoleClaimType));
 
+        /// <summary>  </summary>
         public static ClaimsPrincipal GetPrincipal(this IContext ctx)
         {
             if (ctx.TryGetValue(_key, out ClaimsPrincipal principal))
@@ -29,7 +29,8 @@ namespace RedPipes.Patterns.Auth
             return Anonymous.Clone();
         }
 
-        public static IContext WithPrincipal(this IContext ctx, ClaimsPrincipal principal)
+        /// <summary>  </summary>
+        public static IContext WithPrincipal(this IContext ctx, ClaimsPrincipal? principal)
         {
             if (principal == null)
                 return ctx.WithoutPrincipal();
@@ -37,6 +38,7 @@ namespace RedPipes.Patterns.Auth
             return ctx.With(_key, principal);
         }
 
+        /// <summary>  </summary>
         public static IContext WithoutPrincipal(this IContext ctx)
         {
             if (ctx.TryGetValue(_key, out ClaimsPrincipal _))
@@ -45,6 +47,7 @@ namespace RedPipes.Patterns.Auth
             return ctx;
         }
 
+        /// <summary>  </summary>
         public static IBuilder<TIn, TOut> UsePrincipalProvider<TIn, TOut>(this IBuilder<TIn, TOut> builder, PrincipalProvider<TOut> principalProvider)
         {
             if (principalProvider == null)
@@ -53,6 +56,7 @@ namespace RedPipes.Patterns.Auth
             return builder.Use(new Builder<TOut>(principalProvider));
         }
 
+        /// <summary>  </summary>
         public static IBuilder<TIn, TOut> UsePrincipalProvider<TIn, TOut>(this IBuilder<TIn, TOut> builder, Func<IContext, TOut, Task<ClaimsPrincipal>> principalProvider)
         {
             if (principalProvider == null)
