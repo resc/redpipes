@@ -22,20 +22,31 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build --no-restore --configuration Release /p:Version=${VERSION} /warnaserror
+      run: >-
+           dotnet build 
+           --configuration Release 
+           --no-restore  
+           -p:Version=${VERSION} 
+           --warnaserror
     - name: Test
-      run: dotnet test --configuration Release /p:Version=${VERSION} --no-build
+      run: >-
+           dotnet test
+           --configuration Release 
+           --no-build
+           -p:Version=${VERSION} 
     - name: Pack
       run: >-
            dotnet pack
            --configuration Release
            --no-build \
            --output "${GITHUB_WORKSPACE}/artifacts"
-           /p:Version=${VERSION}
-           /p:RepositoryUrl="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
-           /p:RepositoryType=git
-           /p:RepositoryBranch="${GITHUB_REF}"
+           -p:Version=${VERSION}
+           -p:RepositoryUrl="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
+           -p:RepositoryType=git
+           -p:RepositoryBranch="${GITHUB_REF}"
     - name: Push
-      run: dotnet nuget push NuGet.Workflow.${VERSION}.nupkg \
-           --source https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json \
+      run: >-
+           dotnet nuget 
+           push ${GITHUB_WORKSPACE}/artifacts/*.nupkg
+           --source https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json 
            --api-key ${{ github.token }}

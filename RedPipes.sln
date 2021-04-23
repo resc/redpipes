@@ -42,8 +42,10 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{4665ECF1-DE3E-4F7F-90D6-AAF047847261}"
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\build_and_test.yml = .github\workflows\build_and_test.yml
-		release.yml = release.yml
+		.github\workflows\release.yml = .github\workflows\release.yml
 	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "artefacts", "artefacts", "{18886984-86C6-4261-BDF3-9F3F42EBB501}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
