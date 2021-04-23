@@ -177,8 +177,8 @@ namespace RedPipes.Configuration.Visualization
             var g = new DgmlGraph<object>();
             builder.Accept(g);
             pipe.Accept(g);
-            //  g.GetDgmlDocument().Save(Console.Out);
-            g.SaveDgmlAsTempFileAndOpen();
+            g.GetDgmlDocument().Save(Console.Out);
+            // g.SaveDgmlAsTempFileAndOpen();
         }
 
         class Request
