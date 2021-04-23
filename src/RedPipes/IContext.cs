@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 
 namespace RedPipes
 {
@@ -20,7 +21,7 @@ namespace RedPipes
         /// <param name="key">The key under which the value is stored</param>
         /// <param name="value">The retrieved value</param>
         /// <returns>True if the key is associated with a value of type <typeparamref name="T" />, false if the key is null, or the key is not known</returns>
-        bool TryGetValue<T>(object key, out T value);
+        bool TryGetValue<T>(object key, [MaybeNullWhen(false)] out T value);
          
     }
 }

@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Threading;
-using JetBrains.Annotations;
 
 namespace RedPipes
 {
@@ -25,7 +25,7 @@ namespace RedPipes
 
         private abstract class ContextBase : IContext
         {
-            [NotNull]
+            [JetBrains.Annotations.NotNull]
             protected readonly IContext Inner;
 
             protected ContextBase(IContext inner)
@@ -38,7 +38,7 @@ namespace RedPipes
                 get { return Inner.Token; }
             }
 
-            public virtual bool TryGetValue<T>(object key, out T value)
+            public virtual bool TryGetValue<T>(object key, [MaybeNullWhen(false)] out T value)
             {
                 return Inner.TryGetValue(key, out value);
             }
