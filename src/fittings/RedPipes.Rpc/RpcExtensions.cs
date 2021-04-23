@@ -7,15 +7,18 @@ using RedPipes.Configuration.Visualization;
 
 namespace RedPipes.Patterns.Rpc
 {
+    /// <summary>  </summary>
     public static class RpcExtensions
     {
         private static readonly object _rpcProviderKey = Context.NewKey("RpcProvider");
 
+        /// <summary>  </summary>
         public static IOnRpcResponse<TIn, TRequest> WithRpcProvider<TIn, TRequest>(this IBuilder<TIn, TRequest> builder, IRpcProvider provider, RpcOptions? options = null)
         {
             return new RpcPipeBuilder<TIn, TRequest, Exception>(builder, provider, options);
         }
 
+        /// <summary>  </summary>
         public static IContext WithRpcProvider(this IContext ctx, [NotNull] IRpcProvider provider)
         {
             if (provider == null)
@@ -26,6 +29,7 @@ namespace RedPipes.Patterns.Rpc
             return ctx.With(_rpcProviderKey, provider);
         }
 
+        /// <summary>  </summary>
         public static IRpcProvider GetRpcProvider(this IContext ctx)
         {
             return ctx.TryGetValue(_rpcProviderKey, out IRpcProvider provider)
@@ -33,6 +37,7 @@ namespace RedPipes.Patterns.Rpc
                 : throw new NotSupportedException("No rpc provider available");
         }
 
+        /// <summary>  </summary>
         public static RpcClient GetRpcClient(this IContext ctx, string endpoint)
         {
             var opts = RpcOptions.Default.Clone();
@@ -41,6 +46,7 @@ namespace RedPipes.Patterns.Rpc
             return new RpcClient(provider, opts);
         }
 
+        /// <summary>  </summary>
         public static RpcClient With([NotNull] this RpcClient client, [NotNull] Action<RpcOptions> setOptions)
         {
             if (client == null)

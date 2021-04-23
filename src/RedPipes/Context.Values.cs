@@ -30,12 +30,12 @@ namespace RedPipes
                 _key = key;
             }
 
-            public override bool TryGetValue<T>(object key, [MaybeNullWhen(false)] out T value)
+            public override bool TryGetValue<T>(object key, out T value)
             {
                 if (!ReferenceEquals(_key, key))
                     return Inner.TryGetValue(key, out value);
 
-                value = default;
+                value = default!;
                 return false;
             }
 
@@ -56,9 +56,9 @@ namespace RedPipes
                 _value = value;
             }
 
-            public override bool TryGetValue<T>(object key, [MaybeNullWhen(false)] out T value)
+            public override bool TryGetValue<T>(object key, out T value)
             {
-                value = default;
+                value = default!;
 
                 if (!ReferenceEquals(_key, key))
                     return Inner.TryGetValue(key, out value);

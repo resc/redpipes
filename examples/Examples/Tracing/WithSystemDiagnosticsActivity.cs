@@ -9,8 +9,8 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using RedPipes.Configuration;
 using RedPipes.Configuration.Visualization;
+using RedPipes.OpenTelemetry.Tracing;
 using RedPipes.Patterns.Rpc;
-using RedPipes.Telemetry.Tracing;
 
 namespace RedPipes.Tracing
 {
@@ -40,15 +40,15 @@ namespace RedPipes.Tracing
             ActivitySource.AddActivityListener(listener);
 
             var rpc = await Pipe.Build<string[]>()
-                    .UseDiagnosticsActivity("rpc.request", ActivityKind.Client, getTags: (c, args) => args.Select((a, i) => new KeyValuePair<string, object>($"arg{i}", a)))
+                    .UseDiagnosticsActivity("rpc.request", ActivityKind.Client, getTags: (_, args) => args.Select((a, index) => new KeyValuePair<string, object?>($"arg{index}", a)))
                     .WithRpcProvider(this, new RpcOptions { Timeout = TimeSpan.FromSeconds(5) })
                     .OnRpcResponse<string>(pipe => pipe
                         .UseDiagnosticsActivity("rpc.response")
-                        .Use((_, rsp) => Console.WriteLine("Response received: {0}", string.Join("," ,rsp))))
+                        .Use((_, rsp) => Console.WriteLine("Response received: {0}", string.Join(",", rsp))))
                     .OnRpcError<Exception>(pipe => pipe
                         .UseDiagnosticsActivity("rpc.error", getTags: GetExceptionTags)
                         .Use((_, ex) => Console.WriteLine("Handled exception: {0}", ex.Message)))
-                    .Build(); 
+                    .Build();
 
             try
             {
@@ -60,11 +60,11 @@ namespace RedPipes.Tracing
             }
         }
 
-        private IEnumerable<KeyValuePair<string, object>> GetExceptionTags(IContext c, Exception ex)
+        private IEnumerable<KeyValuePair<string, object?>> GetExceptionTags(IContext c, Exception ex)
         {
-            yield return new KeyValuePair<string, object>("exception.type", ex.GetType().Name);
-            yield return new KeyValuePair<string, object>("exception.message", ex.Message);
-            yield return new KeyValuePair<string, object>("exception.stacktrace", ex.ToString());
+            yield return new KeyValuePair<string, object?>("exception.type", ex.GetType().Name);
+            yield return new KeyValuePair<string, object?>("exception.message", ex.Message);
+            yield return new KeyValuePair<string, object?>("exception.stacktrace", ex.ToString());
         }
 
         private void ActivityStarted(Activity activity)
@@ -81,8 +81,9 @@ namespace RedPipes.Tracing
             }
         }
 
-        private static string ToString(object o, int maxLength)
+        private static string ToString(object? o, int maxLength)
         {
+            if (o == null) return "";
             var s = $"{o}".Replace("\r", "").Replace("\n", "\\n");
             if (s.Length > maxLength)
             {
@@ -93,7 +94,7 @@ namespace RedPipes.Tracing
 
                 var firstHalf = s.Substring(0, half - 1);
                 var secondHalfLength = maxLength - (firstHalf.Length - 2);
-                var secondHalf = s.Substring(s.Length - secondHalfLength);
+                var secondHalf = s[..^secondHalfLength];
                 return firstHalf + "..." + secondHalf;
             }
 
@@ -119,7 +120,7 @@ namespace RedPipes.Tracing
             }
         }
 
-        private async Task<(IContext, object)> CallString(IContext ctx, string[] strings, RpcOptions options)
+        private static async Task<(IContext, object)> CallString(IContext ctx, string[] strings, RpcOptions options)
         {
             if (strings.Length < 1)
                 throw new InvalidOperationException("1 parameter required");

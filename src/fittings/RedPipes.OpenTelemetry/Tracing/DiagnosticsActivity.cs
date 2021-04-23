@@ -7,27 +7,32 @@ using OpenTelemetry.Trace;
 using RedPipes.Configuration;
 using RedPipes.Configuration.Visualization;
 
-namespace RedPipes.Telemetry.Tracing
+namespace RedPipes.OpenTelemetry.Tracing
 {
+    /// <summary> <see cref="ActivityContext"/> extensions for pipelines </summary>
     public static class DiagnosticsActivity
     {
         private static readonly object _activityContextKey = Context.NewKey(nameof(ActivityContext));
 
+        /// <summary> Retrieve <see cref="ActivityContext"/> from <see cref="IContext"/> </summary>
         public static bool TryGetActivityContext(this IContext ctx, out ActivityContext activity)
         {
             return ctx.TryGetValue(_activityContextKey, out activity);
         }
 
+        /// <summary> Creates a new context with an added <see cref="ActivityContext"/> from <paramref name="ctx"/></summary>
         public static IContext WithActivityContext(this IContext ctx, ActivityContext activity)
         {
             return ctx.With(_activityContextKey, activity);
         }
 
+        /// <summary> Creates a new context and removes the <see cref="ActivityContext"/> from <paramref name="ctx"/> if it exists </summary>
         public static IContext WithoutActivityContext(this IContext ctx)
         {
             return ctx.Without(_activityContextKey);
         }
 
+        /// <summary> Adds activity tracing to a pipeline</summary>
         public static IBuilder<T, T> UseDiagnosticsActivity<T>(this IBuilder<T, T> builder, [NotNull] string activityName, ActivityKind kind = ActivityKind.Internal, ActivitySource? source = null, Func<IContext, T, IEnumerable<KeyValuePair<string, object?>>>? getTags = null)
         {
             if (activityName == null)
@@ -40,7 +45,7 @@ namespace RedPipes.Telemetry.Tracing
             return builder.Use(new Builder<T>(activityName, kind, source, getTags));
         }
 
-        sealed class Builder<T> : Builder, IBuilder<T, T>
+        sealed class Builder<T> : Builder, IBuilder<T, T> 
         {
             private readonly string _name;
             private readonly ActivityKind _kind;

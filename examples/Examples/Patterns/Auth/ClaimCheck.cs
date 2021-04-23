@@ -12,7 +12,7 @@ namespace RedPipes.Patterns.Auth
     [Description("Some api authentication usage examples, use the first argument to set the user, and the second argument to set the user's role")]
     public class ClaimCheck : IPipe<string[]>
     {
-        DateTimeOffset startDate = new DateTimeOffset(2020, 1, 1, 0, 0, 0, TimeSpan.Zero);
+       readonly DateTimeOffset _startDate = new DateTimeOffset(2020, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
 
         public async Task Execute(IContext c, string[] args)
@@ -23,7 +23,7 @@ namespace RedPipes.Patterns.Auth
             var builder = Pipe.Build<string[]>()
                 .Transform().Use(ArgsToRequest)
                 .UsePrincipalProvider(BearerTokenPrincipalProvider)
-                .UseAuthPolicy(p => p.HasRole("admin").And(p.IsAfter(startDate)), accessDenied)
+                .UseAuthPolicy(p => p.HasRole("admin").And(p.IsAfter(_startDate)), accessDenied)
                 .UseAsync(HandleRequest);
 
           
@@ -64,7 +64,7 @@ namespace RedPipes.Patterns.Auth
         {
             var p = ctx.GetPrincipal();
             var role = p.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Role)?.Value ?? "?";
-            await Console.Out.WriteLineAsync($"Access denied for user '{p.Identity.Name}' in role '{role}'");
+            await Console.Out.WriteLineAsync($"Access denied for user '{p.Identity!.Name}' in role '{role}'");
             await next(ctx, value);
         }
 
@@ -72,7 +72,7 @@ namespace RedPipes.Patterns.Auth
         {
             var principal = ctx.GetPrincipal();
             var role = principal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value ?? "?";
-            await Console.Out.WriteLineAsync($"User '{principal.Identity.Name}' made a request as '{role}'");
+            await Console.Out.WriteLineAsync($"User '{principal.Identity!.Name}' made a request as '{role}'");
         }
 
         private static string MakeAccessToken(string[] strings)

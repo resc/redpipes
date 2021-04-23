@@ -8,14 +8,16 @@ using RedPipes.Configuration.Visualization;
 
 namespace RedPipes.Policies
 {
+    /// <summary> Pipe retries  </summary>
     public static class Retry
     {
+        /// <summary> Adds a retry policy to the pipe </summary>
         public static IBuilder<TIn, T> WithRetries<TIn, T>(this IBuilder<TIn, T> builder, int retryCount)
         {
             return builder.Use(new Builder<T>(retryCount));
         }
 
-        class Builder<T> :Builder, IBuilder<T, T>
+        class Builder<T> : Builder, IBuilder<T, T>
         {
             private readonly int _retryCount;
 
@@ -48,7 +50,7 @@ namespace RedPipes.Policies
             {
                 await _retryPolicy.ExecuteAsync(async (c) => await _next.Execute(ctx, value), ctx.Token);
             }
-            
+
             public void Accept(IGraphBuilder<IPipe> visitor)
             {
                 if (visitor.AddEdge(this, _next, (Keys.Name, "Next")))

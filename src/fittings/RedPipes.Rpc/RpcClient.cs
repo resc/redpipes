@@ -5,34 +5,40 @@ using RedPipes.Configuration;
 
 namespace RedPipes.Patterns.Rpc
 {
+    /// <summary>  </summary>
     public class RpcClient
     {
         internal IRpcProvider Provider { get; }
 
         internal RpcOptions Options { get; }
 
+        /// <summary>  </summary>
         public RpcClient(IRpcProvider provider, RpcOptions options)
         {
             Provider = provider;
             Options = options;
         }
 
+        /// <summary>  </summary>
         public string Name
         {
             get { return Options.EndPoint; }
         }
 
+        /// <summary>  </summary>
         public async Task<TResponse> Call<TRequest, TResponse>(IContext ctx, IRpcRequest<TRequest, TResponse> rpc) where TRequest : IRpcRequest<TRequest, TResponse>
         {
             return await Call<TRequest, TResponse>(ctx, (TRequest)rpc);
         }
 
+        /// <summary>  </summary>
         public async Task<TResponse> Call<TRequest, TResponse>(IContext ctx, TRequest request)
         {
             var (_, response) = await Provider.Call<TRequest, TResponse>(ctx, request, Options);
             return response;
         }
 
+        /// <summary>  </summary>
         public async Task Call<TRequest, TResponse>(IContext ctx, IRpcRequest<TRequest, TResponse> request, [NotNull] Pipe.ExecuteAsync<TResponse> onResponse, Pipe.ExecuteAsync<Exception>? onError = null) where TRequest : IRpcRequest<TRequest, TResponse>
         {
             var responseBuilder = Pipe.Build<TResponse>().UseAsync(onResponse);
@@ -40,6 +46,7 @@ namespace RedPipes.Patterns.Rpc
             await Call(ctx, request, responseBuilder, errorBuilder);
         }
 
+        /// <summary>  </summary>
         public async Task Call<TRequest, TResponse>(IContext ctx, TRequest request, [NotNull] Pipe.ExecuteAsync<TResponse> onResponse, Pipe.ExecuteAsync<Exception>? onError = null)
         {
             var responseBuilder = Pipe.Build<TResponse>().UseAsync(onResponse);
@@ -47,6 +54,7 @@ namespace RedPipes.Patterns.Rpc
             await Call(ctx, request, responseBuilder, errorBuilder);
         }
 
+        /// <summary>  </summary>
         public async Task Call<TRequest, TResponse>(IContext ctx, TRequest request, [NotNull] IBuilder<TResponse, TResponse> onResponse, IBuilder<Exception, Exception>? onError = null)
         {
             if (onResponse == null)
@@ -57,6 +65,7 @@ namespace RedPipes.Patterns.Rpc
             await Call(ctx, request, responsePipe, errorPipe);
         }
 
+        /// <summary>  </summary>
         public async Task Call<TRequest, TResponse>(IContext ctx, TRequest request, IPipe<TResponse> onResponse, IPipe<Exception>? onError = null)
         {
             if (onResponse == null) throw new ArgumentNullException(nameof(onResponse));

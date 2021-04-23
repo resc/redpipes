@@ -15,6 +15,7 @@ namespace RedPipes.RabbitMQ
 
         private IDictionary<string, object>? _clientProperties;
 
+        /// <summary> the custom properties for this client </summary>
         public IDictionary<string, object> ClientProperties
         {
             get { return _clientProperties ??= new Dictionary<string, object>(); }

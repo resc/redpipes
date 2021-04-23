@@ -161,15 +161,19 @@ namespace RedPipes.Configuration.Visualization
                             "application/xml",
                             UseSerializer(bytes =>
                             {
-                                var json = Encoding.UTF8.GetString(bytes);
-                                return new XmlSerializer(typeof(object)).Deserialize(new MemoryStream(bytes));
+                                var serializer = new XmlSerializer(typeof(object));
+                                using var memoryStream = new MemoryStream(bytes);
+                                var obj = serializer.Deserialize(memoryStream);
+                                if (obj == null)
+                                    throw new SerializationException("Serialization failed");
+                                return obj;
                             }, "Set XML Serializer")
                         }
                     }
                     , onUnknownContentType
                     , fallThrough: true
                     , switchName: "Select deserializer\nbased on Content-Type")
-                .Use((ctx, rc) => rc.DeserializedBody = rc.Serializer(rc.Request.Body), "Deserialize body")
+                .Use((ctx, rc) => rc.DeserializedBody = rc.Serializer?.Invoke(rc.Request.Body), "Deserialize body")
                 .UseConsolePrinter();
 
             var pipe = await builder.Build();
@@ -177,26 +181,37 @@ namespace RedPipes.Configuration.Visualization
             var g = new DgmlGraph<object>();
             builder.Accept(g);
             pipe.Accept(g);
-            //  g.GetDgmlDocument().Save(Console.Out);
-            g.SaveDgmlAsTempFileAndOpen();
+            g.GetDgmlDocument().Save(Console.Out);
+            // g.SaveDgmlAsTempFileAndOpen();
         }
 
+        /// <summary>  </summary>
         class Request
         {
-            public string ContentType { get; set; }
-            public byte[] Body { get; set; }
+            public Request(string contentType, byte[] body)
+            {
+                ContentType = contentType;
+                Body = body;
+            }
+
+            /// <summary>  </summary>
+            public string ContentType { get;   }
+            /// <summary>  </summary>
+            public byte[] Body { get;   }
         }
 
+        /// <summary>  </summary>
         class RequestContext
         {
+            /// <summary>  </summary>
             public RequestContext(Request request)
             {
                 Request = request;
             }
 
             public Request Request { get; }
-            public Func<byte[], object> Serializer { get; set; }
-            public object DeserializedBody { get; set; }
+            public Func<byte[], object>? Serializer { get; set; }
+            public object? DeserializedBody { get; set; }
         }
     }
 

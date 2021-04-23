@@ -19,7 +19,7 @@ namespace RedPipes.Configuration
              IBuilder<TOut, TOut>? defaultCase = null,
             IEqualityComparer<TKey>? keyComparer = null,
             bool fallThrough = false,
-            string? switchName = null)
+            string? switchName = null) where TKey : notnull
         {
             if (selector == null)
             {
@@ -35,7 +35,7 @@ namespace RedPipes.Configuration
             return Builder.Join(builder, new Builder<TOut, TKey>(selector, cases, defaultCase, keyComparer, fallThrough, switchName));
         }
 
-        class Builder<T, TKey> : Builder, IBuilder<T, T>
+        class Builder<T, TKey> : Builder, IBuilder<T, T> where TKey : notnull
         {
             private readonly Func<IContext, T, TKey> _selector;
             private readonly Dictionary<TKey, IBuilder<T, T>> _cases;
