@@ -30,7 +30,7 @@ namespace RedPipes
 
         public Program(IEnumerable<IPipe<string[]>> examples)
         {
-            _examples = examples.ToDictionary(x => TrimPrefix(x.GetType().FullName, "RedPipes."), StringComparer.OrdinalIgnoreCase);
+            _examples = examples.ToDictionary(x => TrimPrefix(x.GetType().FullName??"", "RedPipes."), StringComparer.OrdinalIgnoreCase);
         }
 
         private async Task Run(string[] args)
@@ -61,13 +61,13 @@ namespace RedPipes
             var format = $"  {{0,-{maxLength}}}  : {{1}}";
 
             foreach (var name in names)
-                await Console.Out.WriteLineAsync(string.Format(format, name, GetDescription(name, maxLength + 6)));
+                await Console.Out.WriteLineAsync(string.Format(format, name, GetDescription(name)));
 
             await Console.Out.WriteLineAsync();
             await Console.Out.WriteLineAsync();
         }
 
-        private string GetDescription(string name, int prefixLength)
+        private string GetDescription(string name)
         {
             string description = "no description available";
             if (_examples.TryGetValue(name, out var value))
@@ -92,11 +92,10 @@ namespace RedPipes
             return disposable;
         }
 
-        private string TrimPrefix(string s, string prefix)
+        private static string TrimPrefix(string s, string prefix)
         {
-            if (s == null) return null;
             if (s.StartsWith(prefix))
-                return s.Substring(prefix.Length, s.Length - prefix.Length);
+                return s[prefix.Length..^prefix.Length];
             return s;
         }
 

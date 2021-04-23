@@ -82,7 +82,7 @@ namespace RedPipes.Configuration.Visualization
                 Target.InEdges.Remove(this);
             }
 
-            public bool Equals(Edge other)
+            public bool Equals(Edge? other)
             {
                 if (ReferenceEquals(null, other))
                 {
@@ -97,7 +97,7 @@ namespace RedPipes.Configuration.Visualization
                 return Equals(Source, other.Source) && Equals(Target, other.Target);
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
                 if (ReferenceEquals(null, obj))
                 {
@@ -192,7 +192,7 @@ namespace RedPipes.Configuration.Visualization
 
         private ReferenceEqualityComparer() { }
 
-        public bool Equals(T x, T y)
+        public bool Equals(T? x, T? y)
         {
             return ReferenceEquals(x, y);
         }

@@ -38,7 +38,7 @@ namespace RedPipes
                 get { return Inner.Token; }
             }
 
-            public virtual bool TryGetValue<T>(object key, [MaybeNullWhen(false)] out T value)
+            public virtual bool TryGetValue<T>(object key, out T value)
             {
                 return Inner.TryGetValue(key, out value);
             }

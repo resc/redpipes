@@ -15,9 +15,9 @@ namespace RedPipes
                 get { return CancellationToken.None; }
             }
 
-            public bool TryGetValue<T>(object key, [MaybeNullWhen(false)] out T value)
+            public bool TryGetValue<T>(object key, out T value)
             {
-                value = default;
+                value = default!;
                 return false;
             }
 

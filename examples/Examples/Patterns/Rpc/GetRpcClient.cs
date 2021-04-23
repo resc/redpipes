@@ -145,7 +145,7 @@ namespace RedPipes.Patterns.Rpc
 
             public ListRequestNoMarkerInterface()
             {
-
+                Args = Array.Empty<string>();
             }
 
             public ListRequestNoMarkerInterface(string[] args)
@@ -173,13 +173,14 @@ namespace RedPipes.Patterns.Rpc
             }
         }
 
+        /// <summary>  </summary>
         public class ListRequest : IEnumerable<string>, IRpcRequest<ListRequest, ListResponse>
         {
             public string[] Args { get; }
 
             public ListRequest()
             {
-
+                Args = Array.Empty<string>();
             }
 
             public ListRequest(string[] args)
@@ -208,13 +209,13 @@ namespace RedPipes.Patterns.Rpc
 
         public class ListResponse
         {
-            private string[] _list;
-            private static readonly string[] _emptyList = new string[0];
+            private static readonly string[] _emptyList = Array.Empty<string>();
+            private string[] _list = _emptyList;
 
             public string[] List
             {
-                get { return _list ??= _emptyList; }
-                set { _list = value; }
+                get { return _list; }
+                set { _list = value ?? _emptyList; }
             }
 
             public override string ToString()

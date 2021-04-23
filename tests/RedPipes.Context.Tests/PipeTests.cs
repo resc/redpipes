@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using RedPipes.Telemetry.Tracing;
 using RedPipes.Configuration;
 using RedPipes.Configuration.Visualization;
+using RedPipes.OpenTelemetry.Tracing;
 
 namespace RedPipes
 {
@@ -24,7 +24,8 @@ namespace RedPipes
             });
             var id = Guid.NewGuid();
             var builder = Pipe.Build<int>()
-                .UseDiagnosticsActivity("TestActivity").Transform().Use((ctx, data) => (ctx, data.ToString()));
+                .UseDiagnosticsActivity("TestActivity")
+                .Transform().Use((ctx, data) => (ctx, data.ToString()));
 
             var output = new Output();
             var pipe = await builder.Build(output);
@@ -45,9 +46,9 @@ namespace RedPipes
                 return Task.CompletedTask;
             }
 
-            public string Value { get; private set; }
+            public string? Value { get; private set; }
 
-            public IContext Context { get; private set; }
+            public IContext? Context { get; private set; }
 
             public void Accept(IGraphBuilder<IPipe> visitor)
             {

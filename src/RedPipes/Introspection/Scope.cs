@@ -64,7 +64,7 @@ namespace RedPipes.Introspection
         private string ConvertToString(object value)
         {
             var c = TypeDescriptor.GetConverter(value);
-            return c.ConvertToInvariantString(c);
+            return c.ConvertToInvariantString(c) ?? "";
         }
 
         private static bool IsValidName(string s)

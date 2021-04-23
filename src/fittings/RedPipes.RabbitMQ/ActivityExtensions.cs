@@ -7,18 +7,26 @@ using RabbitMQ.Client;
 
 namespace RedPipes.RabbitMQ
 {
+    /// <summary>
+    /// RabbitMQ diagnostics activity extensions
+    /// </summary>
     public static class ActivityExtensions
     {
-        private const string EventNamePrefix = "messaging.rabbitmq.event ";
-        private const string InitPrefix = "messaging.rabbitmq.init ";
+        /// <summary> RabbitMQ event name prefix for logging </summary>
+        public const string EventNamePrefix = "messaging.rabbitmq.event ";
 
+        /// <summary> RabbitMQ init event name prefix for logging </summary>
+        public const string InitPrefix = "messaging.rabbitmq.init ";
+
+        /// <summary> Prepends the <see cref="InitPrefix"/> to string <paramref name="s"/> </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string WithRmqInitPrefix(this string s)
         {
             return InitPrefix + s;
         }
 
-        public static void AddQueueDeclaredEvent(this Activity a, QueueConfig cfg, QueueDeclareOk result)
+        /// <summary> Adds a queue declared event to <see cref="Activity"/> <paramref name="a"/> </summary>
+        public static void AddQueueDeclaredEvent(this Activity? a, QueueConfig cfg, QueueDeclareOk result)
         {
             if (a == null) return;
 
@@ -38,8 +46,9 @@ namespace RedPipes.RabbitMQ
             }
             a.AddEvent(new ActivityEvent(EventNamePrefix + "queue_declare_ok", tags: tags));
         }
-
-        public static void AddExchangeDeclaredEvent(this Activity a, ExchangeConfig cfg)
+      
+        /// <summary> Adds a exchange declared event to <see cref="Activity"/> <paramref name="a"/> </summary>
+        public static void AddExchangeDeclaredEvent(this Activity? a, ExchangeConfig cfg)
         {
             if (a == null) return;
 
@@ -57,7 +66,10 @@ namespace RedPipes.RabbitMQ
             }
             a.AddEvent(new ActivityEvent(EventNamePrefix + "queue_declare_ok", tags: tags));
         }
-        public static void AddBasicConsumeEvent(this Activity a, QueueConfig cfg, string consumerTag)
+       
+
+        /// <summary> Adds a basic consume event to <see cref="Activity"/> <paramref name="a"/> </summary>
+        public static void AddBasicConsumeEvent(this Activity? a, QueueConfig cfg, string consumerTag)
         {
             if (a == null) return;
 
@@ -78,6 +90,7 @@ namespace RedPipes.RabbitMQ
             a.AddEvent(new ActivityEvent(EventNamePrefix + "basic_consume", tags: tags));
         }
 
+        /// <summary> Adds the tags in <paramref name="args"/> to the <paramref name="tags"/> while prefixing the key with <paramref name="prefix"/> </summary>
         public static void AddWithPrefix(this ActivityTagsCollection tags, string prefix, IDictionary<string, object>? args)
         {
             if (args == null) return;

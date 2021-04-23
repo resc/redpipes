@@ -45,7 +45,7 @@ namespace RedPipes.Configuration.Visualization
                             new XAttribute(XName.Get("Target"), e.Target.Id),
                             new XAttribute(XName.Get("Label"), e.Labels.GetValueOrDefault(Keys.Name,"Next"))
                         }
-                        .Concat(arg.Labels.Select(kv => new XAttribute(XName.Get("Edge" + kv.Key), kv.Value.ToString())))
+                        .Concat(arg.Labels.Select(kv => new XAttribute(XName.Get("Edge" + kv.Key), kv.Value.ToString()??"")))
                         .Cast<object>()
                         .ToArray();
 
@@ -63,7 +63,7 @@ namespace RedPipes.Configuration.Visualization
                         new XAttribute(XName.Get("Id"), n.Id),
                         new XAttribute(XName.Get("Label"),n.Labels.GetValueOrDefault(Keys.Name, n.Item.GetType().GetCSharpName())),
                     }
-                    .Concat(n.Labels.Select(kv => new XAttribute(XName.Get("Node" + kv.Key), kv.Value.ToString())))
+                    .Concat(n.Labels.Select(kv => new XAttribute(XName.Get("Node" + kv.Key), kv.Value.ToString()??"")))
                     .Cast<object>()
                     .ToArray();
 

@@ -1,5 +1,6 @@
 ﻿namespace RedPipes.RabbitMQ
 {
+    /// <summary>  </summary>
     public class ExchangeConfig
     {
         private ExchangeDeclaration? _declaration;

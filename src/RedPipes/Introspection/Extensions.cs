@@ -48,7 +48,7 @@ namespace RedPipes.Introspection
 
             foreach (var e in n.OutEdges.OrderBy(x => x.Id))
             {
-                var name = e.Labels.GetValueOrDefault(Keys.Name, "Next").ToString();
+                var name = e.Labels.GetValueOrDefault(Keys.Name, "Next").ToString() ?? "";
                 DumpPipeStructure(e.Target, scope.Scope(name) ,visited);
             }
 
@@ -60,7 +60,9 @@ namespace RedPipes.Introspection
             if (t.IsNested)
             {
                 // add the declaring type name to the type name.
-                name = t.DeclaringType.CSharpName(includeNamespaces) + "." + name;
+                var declaringTypeName = t.DeclaringType?.CSharpName(includeNamespaces);
+                if (declaringTypeName != null)
+                    name = declaringTypeName + "." + name;
             }
 
             if (t.IsGenericType)

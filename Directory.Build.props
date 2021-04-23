@@ -1,0 +1,12 @@
+﻿<Project>
+    <PropertyGroup>
+        <Deterministic>true</Deterministic>
+        <LangVersion>latest</LangVersion>
+        <Nullable>enable</Nullable>
+        
+        <ProjectUrl>https://github.com/resc/redpipes</ProjectUrl>
+
+        <Authors>ReSc</Authors>
+        <Copyright>Copyright 2021</Copyright>
+    </PropertyGroup> 
+</Project>

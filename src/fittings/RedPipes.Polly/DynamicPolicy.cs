@@ -11,6 +11,7 @@ using RedPipes.Configuration.Visualization;
 
 namespace RedPipes.Policies
 {
+    /// <summary> Adds dynamic policy configuration point to the pipe </summary>
     public static class DynamicPolicy
     {
         static DynamicPolicy()
@@ -33,6 +34,7 @@ namespace RedPipes.Policies
             set { _registryLocator = value ?? _defaultRegistryLocator; }
         }
 
+        /// <summary> The default dynamic policy registry </summary>
         [JetBrains.Annotations.NotNull]
         public static IPolicyRegistry<string> DefaultRegistry
         {
@@ -40,9 +42,9 @@ namespace RedPipes.Policies
         }
 
         /// <summary> Integrates a policy with the given <paramref name="policyKey"/> into the pipeline.
-        /// An <see cref="AsyncPolicy"/> is retrieved from the registry using the <see cref="policyKey"/> every time the pipe is executed,
+        /// An <see cref="AsyncPolicy"/> is retrieved from the registry using the <paramref name="policyKey"/> every time the pipe is executed,
         /// using the registry returned from the <see cref="DefaultRegistry"/> property at the time
-        /// <see cref="WithDynamicPolicy{TIn,T}(RedPipes.Configuration.IPipeBuilder{TIn,T},string)"/> is called.
+        /// <see cref="WithDynamicPolicy{TIn,T}(IBuilder{TIn,T},string)"/> is called.
         /// If no policy is available under teh given key, the pipe is executed without one.</summary>
         public static IBuilder<TIn, T> WithDynamicPolicy<TIn, T>(this IBuilder<TIn, T> builder, [JetBrains.Annotations.NotNull] string policyKey)
         {
@@ -51,7 +53,7 @@ namespace RedPipes.Policies
 
         /// <summary> Integrates a policy with the given <paramref name="policyKey"/> into the pipeline.
         /// An <see cref="AsyncPolicy"/> is retrieved from the <paramref name="policyRegistry"/>
-        /// using the <see cref="policyKey"/> every time the pipe is executed.
+        /// using the <paramref name="policyKey"/> every time the pipe is executed.
         /// If no policy is available under the given key, the pipe is executed without one. </summary>
         public static IBuilder<TIn, T> WithDynamicPolicy<TIn, T>(this IBuilder<TIn, T> builder, [JetBrains.Annotations.NotNull] string policyKey, [JetBrains.Annotations.NotNull] IReadOnlyPolicyRegistry<string> policyRegistry)
         {
