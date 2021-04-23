@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <RootNamespace>RedPipes</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Autofac" Version="6.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Configuration\Ideas\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\fittings\RedPipes.Auth\RedPipes.Auth.csproj" />
+    <ProjectReference Include="..\..\src\fittings\RedPipes.OpenTelemetry\RedPipes.OpenTelemetry.csproj" />
+    <ProjectReference Include="..\..\src\fittings\RedPipes.Polly\RedPipes.Polly.csproj" />
+    <ProjectReference Include="..\..\src\fittings\RedPipes.RabbitMQ\RedPipes.RabbitMQ.csproj" />
+    <ProjectReference Include="..\..\src\fittings\RedPipes.Rpc\RedPipes.Rpc.csproj" />
+    <ProjectReference Include="..\..\src\RedPipes\RedPipes.csproj" />
+  </ItemGroup>
+
+</Project>
