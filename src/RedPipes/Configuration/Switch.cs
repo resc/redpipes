@@ -63,13 +63,13 @@ namespace RedPipes.Configuration
                 {
                     IPipe<T> pipe;
                     if (_fallThrough)
-                        pipe = await kv.Value.Build(next);
+                        pipe = await kv.Value.Build(next).ConfigureAwait(false);
                     else
-                        pipe = await kv.Value.Build();
+                        pipe = await kv.Value.Build().ConfigureAwait(false);
                     dict[kv.Key] = pipe;
                 }
 
-                var defaultPipe = await _defaultCase.Build(next);
+                var defaultPipe = await _defaultCase.Build(next).ConfigureAwait(false);
                 return new Pipe<TKey, T>(_selector, dict, defaultPipe, Name);
             }
 
@@ -111,9 +111,9 @@ namespace RedPipes.Configuration
             {
                 var key = _getKey(ctx, value);
                 if (_cases.TryGetValue(key, out var selectedCase))
-                    await selectedCase.Execute(ctx, value);
+                    await selectedCase.Execute(ctx, value).ConfigureAwait(false);
                 else
-                    await _defaultCase.Execute(ctx, value);
+                    await _defaultCase.Execute(ctx, value).ConfigureAwait(false);
             }
 
             public void Accept(IGraphBuilder<IPipe> visitor)

@@ -78,8 +78,8 @@ namespace RedPipes.Configuration
 
             public async Task Execute(IContext ctx, TIn value)
             {
-                var (ctx1, value1) = await _transform(ctx, value);
-                await _next.Execute(ctx1, value1);
+                var (ctx1, value1) = await _transform(ctx, value).ConfigureAwait(false);
+                await _next.Execute(ctx1, value1).ConfigureAwait(false);
             }
 
             public void Accept(IGraphBuilder<IPipe> visitor)

@@ -9,20 +9,20 @@ namespace RedPipes.Configuration
     /// <summary> Pipe extensions for branching </summary>
     public static class Branch
     {
-        /// <summary> Execute extra steps in the trueBranch if the condition is true, else skip them and continue executing the pipe </summary>
+        /// <summary> Execute steps in the <paramref name="branch"/> if the condition is true, else skip them and continue executing the pipe </summary>
         public static IBuilder<TIn, TOut> UseBranch<TIn, TOut>(
             this IBuilder<TIn, TOut> builder,
             [NotNull] Func<IContext, TOut, bool> condition,
-            [NotNull] IBuilder<TOut, TOut> trueBranch, string? conditionDescription = null)
+            [NotNull] IBuilder<TOut, TOut> branch, string? conditionDescription = null)
         {
-            return builder.UseBranch(condition, trueBranch, Builder.Unit<TOut>(), conditionDescription);
+            return builder.UseBranch(condition, branch, Builder.Unit<TOut>(), conditionDescription);
         }
 
-        /// <summary> Execute extra steps in the pipe,if the condition is true, and continue executing the pipe </summary>
+        /// <summary> Execute extra step in the <paramref name="branch"/> if the condition is true, else skip it and continue executing the pipe </summary>
         public static IBuilder<TIn, TOut> UseBranch<TIn, TOut>(
             this IBuilder<TIn, TOut> builder,
             [NotNull] Func<IContext, TOut, bool> condition,
-            [NotNull] Delegated.Pipe<TOut> trueBranch,
+            [NotNull] Delegated.Pipe<TOut> branch,
             string? conditionDescription = null)
         {
             if (condition == null)
@@ -30,12 +30,12 @@ namespace RedPipes.Configuration
                 throw new ArgumentNullException(nameof(condition));
             }
 
-            if (trueBranch == null)
+            if (branch == null)
             {
-                throw new ArgumentNullException(nameof(trueBranch));
+                throw new ArgumentNullException(nameof(branch));
             }
 
-            var tb = Pipe.Build<TOut>().UseAsync(trueBranch);
+            var tb = Pipe.Build<TOut>().UseAsync(branch);
             return builder.UseBranch(condition, tb, Builder.Unit<TOut>(), conditionDescription);
         }
 
@@ -65,11 +65,11 @@ namespace RedPipes.Configuration
             return Builder.Join(builder, new Builder<TOut>(false, condition, trueBranch, falseBranch, conditionDescription));
         }
 
-        /// <summary> Execute alternate pipe, if the condition is true </summary>
-        public static IBuilder<TIn, TOut> UseAlternate<TIn, TOut>(
+        /// <summary> Execute <paramref name="alternate"/> pipe, if the condition is true </summary>
+        public static IBuilder<TIn, TOut> UseChoice<TIn, TOut>(
             this IBuilder<TIn, TOut> builder,
             [NotNull] Func<IContext, TOut, bool> condition,
-            [NotNull] IBuilder<TOut, TOut> trueBranch,
+            [NotNull] IBuilder<TOut, TOut> alternate,
             string? conditionDescription = null)
         {
             if (condition == null)
@@ -77,23 +77,23 @@ namespace RedPipes.Configuration
                 throw new ArgumentNullException(nameof(condition));
             }
 
-            if (trueBranch == null)
+            if (alternate == null)
             {
-                throw new ArgumentNullException(nameof(trueBranch));
+                throw new ArgumentNullException(nameof(alternate));
             }
 
-            return Builder.Join(builder, new Builder<TOut>(true, condition, trueBranch, Builder.Unit<TOut>(), conditionDescription));
+            return Builder.Join(builder, new Builder<TOut>(true, condition, alternate, Builder.Unit<TOut>(), conditionDescription));
         }
 
-        /// <summary> Execute alternate pipe, if the condition is true </summary>
-        public static IBuilder<TIn, TOut> UseAlternate<TIn, TOut>(
+        /// <summary> Execute <paramref name="alternate"/> pipe, if the condition is true </summary>
+        public static IBuilder<TIn, TOut> UseChoice<TIn, TOut>(
             this IBuilder<TIn, TOut> builder,
             [NotNull] Func<IContext, TOut, bool> condition,
-            [NotNull] Delegated.Pipe<TOut> trueBranch,
+            [NotNull] Delegated.Pipe<TOut> alternate,
             string? conditionDescription = null)
         {
-            var tb = Pipe.Build<TOut>().UseAsync(trueBranch);
-            return builder.UseAlternate(condition, tb, conditionDescription);
+            var tb = Pipe.Build<TOut>().UseAsync(alternate);
+            return builder.UseChoice(condition, tb, conditionDescription);
         }
 
         class Builder<T> : Builder, IBuilder<T, T>
@@ -114,9 +114,9 @@ namespace RedPipes.Configuration
             public async Task<IPipe<T>> Build(IPipe<T> next)
             {
                 var truePipe = _isAlternate
-                    ? await _trueBranch.Build()
-                    : await _trueBranch.Build(next);
-                var falsePipe = await _falseBranch.Build(next);
+                    ? await _trueBranch.Build().ConfigureAwait(false)
+                    : await _trueBranch.Build(next).ConfigureAwait(false);
+                var falsePipe = await _falseBranch.Build(next).ConfigureAwait(false);
                 return new Pipe<T>(_condition, truePipe, falsePipe, Name);
             }
 
@@ -150,11 +150,11 @@ namespace RedPipes.Configuration
             {
                 if (_condition(ctx, value))
                 {
-                    await _trueBranch.Execute(ctx, value);
+                    await _trueBranch.Execute(ctx, value).ConfigureAwait(false);
                 }
                 else
                 {
-                    await _falseBranch.Execute(ctx, value);
+                    await _falseBranch.Execute(ctx, value).ConfigureAwait(false);
                 }
             }
 

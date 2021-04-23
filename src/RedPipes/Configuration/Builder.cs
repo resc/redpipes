@@ -79,8 +79,8 @@ namespace RedPipes.Configuration
 
             public async Task<IPipe<TIn>> Build(IPipe<TOut> next)
             {
-                var output = await _output.Build(next);
-                return await _input.Build(output);
+                var output = await _output.Build(next).ConfigureAwait(false);
+                return await _input.Build(output).ConfigureAwait(false);
             }
 
             public override void Accept(IGraphBuilder<IBuilder> visitor)

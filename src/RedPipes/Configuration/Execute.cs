@@ -43,8 +43,8 @@ namespace RedPipes.Configuration
 
             public async Task Execute(IContext ctx, T value)
             {
-                await _executeAsync(ctx, value);
-                await _next.Execute(ctx, value);
+                await _executeAsync(ctx, value).ConfigureAwait(false);
+                await _next.Execute(ctx, value).ConfigureAwait(false);
             }
 
             public void Accept(IGraphBuilder<IPipe> visitor)

@@ -13,6 +13,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Solution Items", "_Solutio
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		NuGet.config = NuGet.config
+		README.md = README.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{797727E5-7AEF-43A8-81FA-D8489B5AC144}"
@@ -32,6 +33,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RedPipes.RabbitMQ", "src\fittings\RedPipes.RabbitMQ\RedPipes.RabbitMQ.csproj", "{72CAE69F-C294-44CE-8BDF-C1F09D9F63FF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedPipes.Rpc", "src\fittings\RedPipes.Rpc\RedPipes.Rpc.csproj", "{C9ECA754-8E90-44E9-BF7E-36496E032406}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{5078AECF-0F99-46B0-A9BA-00A6642A6460}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
