@@ -5,14 +5,14 @@ using System.Threading.Tasks;
 namespace RedPipes
 {
     /// <summary> Creates a <see cref="IDisposable"/> from an <see cref="Action"/>,
-    /// the action always called exactly once, regardless of how many times <see cref="Dispose"/> is called </summary>
+    /// the action always called exactly once, regardless of how many times <see cref="IDisposable.Dispose"/> is called </summary>
     public static class Disposable
     {
         /// <summary> Empty no-op <see cref="IDisposable"/> implementation </summary>
         public static IDisposable Empty { get; } = Once.Empty;
 
         /// <summary> Creates a <see cref="IDisposable"/> from an <see cref="Action"/>,
-        /// the <paramref name="action"/> always called exactly once, regardless of how many times <see cref="Dispose"/> is called.
+        /// the <paramref name="action"/> always called exactly once, regardless of how many times <see cref="IDisposable.Dispose"/> is called.
         /// <see cref="Create"/> can safely be called with a null <paramref name="action"/> and will return a no-op <see cref="IDisposable"/>.</summary>
         public static IDisposable Create(Action? action)
         {
