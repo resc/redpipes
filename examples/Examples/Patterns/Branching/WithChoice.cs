@@ -12,10 +12,10 @@ namespace RedPipes.Patterns.Branching
     {
         public async Task Execute(IContext context, string[] args)
         {
-            var alternate = Pipe.Build<string>()
+            var alternate = Pipe.Builder<string>()
                 .Use((ctx, value) => Console.WriteLine("Only executed when condition evaluates to true")); 
 
-            var pipe = await Pipe.Build<string>()
+            var pipe = await Pipe.Builder<string>()
                 .UseChoice((ctx, value) => value == "yes", alternate)
                 .Use((ctx, value) => Console.WriteLine("Only executed when condition evaluates to false"))
                 .Build();

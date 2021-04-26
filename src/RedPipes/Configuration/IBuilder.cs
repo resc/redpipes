@@ -16,4 +16,6 @@ namespace RedPipes.Configuration
         /// <summary> builds a new pipe that uses <paramref name="next"/> as the output pipe </summary>
         Task<IPipe<TIn>> Build(IPipe<TOut> next);
     }
+
+   
 }

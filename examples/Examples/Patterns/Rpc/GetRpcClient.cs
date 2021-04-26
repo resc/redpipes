@@ -97,26 +97,20 @@ namespace RedPipes.Patterns.Rpc
 
         private static Task<IPipe<Exception>> GetExceptionPipe()
         {
-            return Pipe.Build<Exception>()
-                .Transform().Use((responseCtx, exception) => (responseCtx, exception.ToString()))
+            return Pipe.Builder<Exception>()
+                .UseTransform().Value(exception => exception.ToString())
                 .UseAsync(async (responseCtx, exception) =>
                 {
-                    // be careful to not use ctx here, or any other captures.
-                    // it's highly probable that will cause gnashing of teeth,
-                    // wailing of despair and face-palming by your future self.
                     await Console.Out.WriteLineAsync("Exception thrown: " + exception);
                 }).Build();
         }
 
         private static async Task<IPipe<ListResponse>> GetResponsePipe()
         {
-            return await Pipe.Build<ListResponse>()
-                    .Transform().Use((responseCtx, response) => (responseCtx, response.ToString()))
+            return await Pipe.Builder<ListResponse>()
+                    .UseTransform().Value(response => response.ToString())
                     .UseAsync(async (responseCtx, response) =>
                     {
-                        // be careful to not use ctx here, or any other captures.
-                        // it's highly probable that will cause gnashing of teeth,
-                        // wailing of despair and face-palming by your future self.
                         await Console.Out.WriteLineAsync("Response received: " + response);
                     }).Build();
         }

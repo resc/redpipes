@@ -42,7 +42,7 @@ namespace RedPipes
             return new CancellationTokenSourceContext(ctx, cts, TimeSpan.Zero);
         }
 
-        private static void EnsureCancellationTokenSourceNotNull(CancellationTokenSource cts)
+        private static void EnsureCancellationTokenSourceNotNull(CancellationTokenSource? cts)
         {
             if (cts == null)
                 ThrowArgumentNullException(nameof(cts));

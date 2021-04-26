@@ -12,11 +12,11 @@ namespace RedPipes.Patterns.Branching
     {
         public async Task Execute(IContext context, string[] args)
         {
-            var pipe = await Pipe.Build<string>()
+            var pipe = await Pipe.Builder<string>()
                 // convert string to an int
-                .Transform().Use((ctx, value) => (ctx, int.Parse(value)))
+                .UseTransform().Value(double.Parse)
                 // convert int to timespan
-                .Transform().Use((ctx, value) => (ctx, TimeSpan.FromSeconds(value)))
+                .UseTransform().Value(TimeSpan.FromSeconds)
                 // print timespan
                 .Use((ctx, value) => Console.WriteLine($"{value:c}"))
                 .Build();

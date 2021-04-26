@@ -41,16 +41,16 @@ namespace RedPipes.Patterns.Rpc
         /// <summary>  </summary>
         public async Task Call<TRequest, TResponse>(IContext ctx, IRpcRequest<TRequest, TResponse> request, [NotNull] Pipe.ExecuteAsync<TResponse> onResponse, Pipe.ExecuteAsync<Exception>? onError = null) where TRequest : IRpcRequest<TRequest, TResponse>
         {
-            var responseBuilder = Pipe.Build<TResponse>().UseAsync(onResponse);
-            var errorBuilder = onError == null ? null : Pipe.Build<Exception>().UseAsync(onError);
+            var responseBuilder = Pipe.Builder<TResponse>().UseAsync(onResponse);
+            var errorBuilder = onError == null ? null : Pipe.Builder<Exception>().UseAsync(onError);
             await Call(ctx, request, responseBuilder, errorBuilder);
         }
 
         /// <summary>  </summary>
         public async Task Call<TRequest, TResponse>(IContext ctx, TRequest request, [NotNull] Pipe.ExecuteAsync<TResponse> onResponse, Pipe.ExecuteAsync<Exception>? onError = null)
         {
-            var responseBuilder = Pipe.Build<TResponse>().UseAsync(onResponse);
-            var errorBuilder = onError == null ? null : Pipe.Build<Exception>().UseAsync(onError);
+            var responseBuilder = Pipe.Builder<TResponse>().UseAsync(onResponse);
+            var errorBuilder = onError == null ? null : Pipe.Builder<Exception>().UseAsync(onError);
             await Call(ctx, request, responseBuilder, errorBuilder);
         }
 

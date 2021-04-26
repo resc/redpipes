@@ -14,13 +14,13 @@ namespace RedPipes.Patterns.Branching
     {
         public async Task Execute(IContext context, string[] args)
         {
-            var trueBranch = Pipe.Build<string>()
+            var trueBranch = Pipe.Builder<string>()
                 .Use((ctx, value) => Console.WriteLine("True branch taken"));
 
-            var falseBranch = Pipe.Build<string>()
+            var falseBranch = Pipe.Builder<string>()
                 .Use((ctx, value) => Console.WriteLine("False branch taken"));
 
-            var pipe = await Pipe.Build<string>()
+            var pipe = await Pipe.Builder<string>()
                 .UseBranch((ctx, value) => value == "yes", trueBranch, falseBranch)
                 .Use((ctx, value) => Console.WriteLine("Executed after either true of false branch is taken"))
                 .Build();

@@ -16,12 +16,12 @@ namespace RedPipes.Configuration
             _builderName = builderName ?? GetType().GetCSharpName();
         }
 
-        public IBuilder<TIn, TOut> Use<TOut>([NotNull] IBuilder<T, TOut> transform)
+        public IBuilder<TIn, TOut> Builder<TOut>([NotNull] IBuilder<T, TOut> transform)
         {
             if (transform == null)
                 throw new ArgumentNullException(nameof(transform));
 
-            return Builder.Join(_input, transform);
+            return Configuration.Builder.Join(_input, transform);
         }
     }
 

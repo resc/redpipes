@@ -10,48 +10,45 @@ namespace RedPipes.Configuration
     {
         /// <summary> The synchronous transformation function,
         /// transforms the <paramref name="ctx"/> and <paramref name="value"/> for the next pipe stage </summary>
-        public delegate (IContext, TOut) Func<in TIn, TOut>(IContext ctx, TIn value);
+        public delegate (IContext, TOut) ContextAndValueTransform<in TIn, TOut>(IContext ctx, TIn value);
 
         /// <summary> The async transformation function,
         /// transforms the <paramref name="ctx"/> and <paramref name="value"/> for the next pipe stage </summary>
-        public delegate Task<(IContext, TOut)> AsyncFunc<in TIn, TOut>(IContext ctx, TIn value);
+        public delegate Task<(IContext, TOut)> AsyncContextAndValueTransform<in TIn, TOut>(IContext ctx, TIn value);
 
-        /// <summary> Applies a transformation function to the pipe </summary>
-        public static IBuilder<TIn, TOut> Use<TIn, T, TOut>(this ITransformBuilder<TIn, T> transformBuilder, Func<T, TOut> transform, string? transformName = null)
+        /// <summary> Applies a value transformation function to the pipe </summary>
+        public static IBuilder<TIn, TOut> Value<TIn, T, TOut>(this ITransformBuilder<TIn, T> builder, Func<T, TOut> valueTransform, string? transformName = null)
         {
-            return transformBuilder.Use((ctx, value) => Task.FromResult(transform(ctx, value)), transformName);
+            return builder.ContextAndValueAsync((ctx, value) => Task.FromResult((ctx, valueTransform(value))), transformName);
         }
 
-        /// <summary> Applies a transformation function to the pipe </summary>
-        public static IBuilder<TIn, TOut> Use<TIn, T, TOut>(this ITransformBuilder<TIn, T> transformBuilder, System.Func<T, TOut> transform, string? transformName = null)
+        /// <summary> Applies an async value transformation function to the pipe </summary>
+        public static IBuilder<TIn, TOut> ValueAsync<TIn, T, TOut>(this ITransformBuilder<TIn, T> builder, Func<IContext, T, Task<TOut>> valueTransform, string? transformName = null)
         {
-            return transformBuilder.Use((ctx, value) => Task.FromResult((ctx, transform(value))), transformName);
-        }
-
-        /// <summary> Applies a transformation function to the pipe </summary>
-        public static IBuilder<TIn, TOut> Use<TIn, T, TOut>(this ITransformBuilder<TIn, T> transformBuilder, AsyncFunc<T, TOut> transform, string? transformName = null)
-        {
-            return transformBuilder.Use(new Builder<T, TOut>(transform, transformName));
-        }
-
-        /// <summary>
-        /// Adds the <paramref name="buildTransform"/> delegate in the pipeline.
-        /// </summary>
-        public static IBuilder<TIn, TOut> Use<TIn, TOut>(this IBuilder<TIn, TIn> builder, [NotNull] System.Func<IPipe<TOut>, IPipe<TIn>> buildTransform, string? transformName = null)
-        {
-            if (buildTransform == null)
+            return builder.ContextAndValueAsync(async (ctx, value) =>
             {
-                throw new ArgumentNullException(nameof(buildTransform));
-            }
+                var newValue = await valueTransform(ctx, value).ConfigureAwait(false);
+                return (ctx, newValue);
+            }, transformName);
+        }
 
-            return Builder.Join(builder, new DelegateBuilder<TIn, TOut>(buildTransform, transformName));
+        /// <summary> Applies a context and value transformation function to the pipe </summary>
+        public static IBuilder<TIn, TOut> ContextAndValue<TIn, T, TOut>(this ITransformBuilder<TIn, T> builder, ContextAndValueTransform<T, TOut> contextAndValueTransform, string? transformName = null)
+        {
+            return builder.ContextAndValueAsync((ctx, value) => Task.FromResult(contextAndValueTransform(ctx, value)), transformName);
+        }
+
+        /// <summary> Applies an async context and value transformation function to the pipe </summary>
+        public static IBuilder<TIn, TOut> ContextAndValueAsync<TIn, T, TOut>(this ITransformBuilder<TIn, T> builder, AsyncContextAndValueTransform<T, TOut> contextAndValueTransform, string? transformName = null)
+        {
+            return builder.Builder(new Builder<T, TOut>(contextAndValueTransform, transformName));
         }
 
         class Builder<TIn, TOut> : Builder, IBuilder<TIn, TOut>
         {
-            private readonly AsyncFunc<TIn, TOut> _transform;
+            private readonly AsyncContextAndValueTransform<TIn, TOut> _transform;
 
-            public Builder([NotNull] AsyncFunc<TIn, TOut> transform, string? name) : base(name)
+            public Builder([NotNull] AsyncContextAndValueTransform<TIn, TOut> transform, string? name) : base(name)
             {
                 _transform = transform;
             }
@@ -65,11 +62,11 @@ namespace RedPipes.Configuration
 
         class Pipe<TIn, TOut> : IPipe<TIn>
         {
-            private readonly AsyncFunc<TIn, TOut> _transform;
+            private readonly AsyncContextAndValueTransform<TIn, TOut> _transform;
             private readonly IPipe<TOut> _next;
             private readonly string _name;
 
-            public Pipe(AsyncFunc<TIn, TOut> transform, IPipe<TOut> next, string name)
+            public Pipe(AsyncContextAndValueTransform<TIn, TOut> transform, IPipe<TOut> next, string name)
             {
                 _transform = transform;
                 _next = next;

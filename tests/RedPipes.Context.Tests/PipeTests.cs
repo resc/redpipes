@@ -23,9 +23,9 @@ namespace RedPipes
                 ActivityStopped = obj => Console.WriteLine($"{obj.DisplayName} {obj.Id} took {obj.Duration:g}"),
             });
             var id = Guid.NewGuid();
-            var builder = Pipe.Build<int>()
+            var builder = Pipe.Builder<int>()
                 .UseDiagnosticsActivity("TestActivity")
-                .Transform().Use((ctx, data) => (ctx, data.ToString()));
+                .UseTransform().Value(data => data.ToString());
 
             var output = new Output();
             var pipe = await builder.Build(output);

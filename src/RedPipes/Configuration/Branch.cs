@@ -35,7 +35,7 @@ namespace RedPipes.Configuration
                 throw new ArgumentNullException(nameof(branch));
             }
 
-            var tb = Pipe.Build<TOut>().UseAsync(branch);
+            var tb = Pipe.Builder<TOut>().UseAsync(branch);
             return builder.UseBranch(condition, tb, Builder.Unit<TOut>(), conditionDescription);
         }
 
@@ -92,7 +92,7 @@ namespace RedPipes.Configuration
             [NotNull] Delegated.Pipe<TOut> alternate,
             string? conditionDescription = null)
         {
-            var tb = Pipe.Build<TOut>().UseAsync(alternate);
+            var tb = Pipe.Builder<TOut>().UseAsync(alternate);
             return builder.UseChoice(condition, tb, conditionDescription);
         }
 

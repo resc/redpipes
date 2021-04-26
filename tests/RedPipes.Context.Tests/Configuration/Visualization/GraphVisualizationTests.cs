@@ -20,11 +20,11 @@ namespace RedPipes.Configuration.Visualization
         [TestMethod]
         public async Task GeneratePipeDgmlFile()
         {
-            var pipe = await Pipe.Build<int>()
-                .Transform()
-                .Use(num => num.ToString())
-                .Transform()
-                .Use(double.Parse)
+            var pipe = await Pipe.Builder<int>()
+                .UseTransform()
+                .Value(num => num.ToString())
+                .UseTransform()
+                .Value(double.Parse)
                 .Build();
 
 
@@ -36,18 +36,18 @@ namespace RedPipes.Configuration.Visualization
         [TestMethod]
         public async Task TestMultipleInputPipesPipeGraph()
         {
-            var builder = Pipe.Build<int>()
-                .Transform()
-                .Use(num => num.ToString())
+            var builder = Pipe.Builder<int>()
+                .UseTransform()
+                .Value(num => num.ToString())
                 .UseConsolePrinter()
-                .Transform()
-                .Use(double.Parse)
+                .UseTransform()
+                .Value(double.Parse)
                 .UseConsolePrinter();
 
             var pipe = await builder.Build();
 
-            var user = await Pipe.Build<int>().Named("User Input").Build(pipe);
-            var api = await Pipe.Build<int>().Named("API Input").Build(pipe);
+            var user = await Pipe.Builder<int>().Named("User Input").Build(pipe);
+            var api = await Pipe.Builder<int>().Named("API Input").Build(pipe);
             var g = new DgmlGraph<object>();
             user.Accept(g);
             api.Accept(g);
@@ -58,18 +58,18 @@ namespace RedPipes.Configuration.Visualization
         [TestMethod]
         public async Task TestMultipleInputPipesBuilderGraph()
         {
-            var builder = Pipe.Build<int>()
-                .Transform()
-                .Use(num => num.ToString(), "Convert int to string")
+            var builder = Pipe.Builder<int>()
+                .UseTransform()
+                .Value(num => num.ToString(), "Convert int to string")
                 .UseConsolePrinter()
-                .Transform()
-                .Use(double.Parse, "Parse string to double")
+                .UseTransform()
+                .Value(double.Parse, "Parse string to double")
                 .UseConsolePrinter();
 
             var pipe = await builder.Build();
 
-            var user = Pipe.Build<int>().Named("User Input").Transform().Use(builder);
-            var api = Pipe.Build<int>().Named("API Input").Transform().Use(builder);
+            var user = Pipe.Builder<int>().Named("User Input").UseTransform().Builder(builder);
+            var api = Pipe.Builder<int>().Named("API Input").UseTransform().Builder(builder);
             var g = new DgmlGraph<object>();
 
             user.Accept(g);
@@ -83,13 +83,13 @@ namespace RedPipes.Configuration.Visualization
         [TestMethod]
         public async Task CanVisualizeBranchedPipe()
         {
-            var builder = Pipe.Build<int>()
+            var builder = Pipe.Builder<int>()
                 .UseBranch((ctx, i) => i % 2 == 0
-                    , Pipe.Build<int>().Named("Do even stuff")
-                    , Pipe.Build<int>().Named("Do odd stuff")
+                    , Pipe.Builder<int>().Named("Do even stuff")
+                    , Pipe.Builder<int>().Named("Do odd stuff")
                     , "x % 2 == 0")
-                .Transform()
-                .Use(num => num.ToString(), "Convert int to string")
+                .UseTransform()
+                .Value(num => num.ToString(), "Convert int to string")
                 .UseConsolePrinter();
 
             var pipe = await builder.Build();
@@ -104,12 +104,12 @@ namespace RedPipes.Configuration.Visualization
         [TestMethod]
         public async Task CanVisualizeTrueBranchedPipe()
         {
-            var builder = Pipe.Build<int>()
+            var builder = Pipe.Builder<int>()
                 .UseBranch((ctx, i) => i % 2 == 0
-                    , Pipe.Build<int>().Named("Do even stuff")
+                    , Pipe.Builder<int>().Named("Do even stuff")
                     , "x % 2 == 0")
-                .Transform()
-                .Use(num => num.ToString(), "Convert int to string")
+                .UseTransform()
+                .Value(num => num.ToString(), "Convert int to string")
                 .UseConsolePrinter();
 
             var pipe = await builder.Build();
@@ -129,8 +129,8 @@ namespace RedPipes.Configuration.Visualization
 
             IBuilder<RequestContext, RequestContext> UseSerializer(Func<byte[], object> serializer, string name)
             {
-                return Pipe.Build<RequestContext>()
-                    .Transform().Use((ctx, rc) =>
+                return Pipe.Builder<RequestContext>()
+                    .UseTransform().ContextAndValue((ctx, rc) =>
                     {
                         rc.Serializer = serializer;
                         return (ctx, rc);
@@ -139,13 +139,13 @@ namespace RedPipes.Configuration.Visualization
 
 
             var onUnknownContentType = Pipe
-                .Build<RequestContext>()
+                .Builder<RequestContext>()
                 .Use((ctx, rc) => throw new SerializationException("Unknown content type: " + rc.Request.ContentType), "Throw Unknown Content-Type Exception")
                 .StopProcessing();
 
-            var builder = Pipe.Build<Request>()
+            var builder = Pipe.Builder<Request>()
                 .Named("Receive Request")
-                .Transform().Use((ctx, r) => (ctx, new RequestContext(r)), "Create Request Context")
+                .UseTransform().ContextAndValue((ctx, r) => (ctx, new RequestContext(r)), "Create Request Context")
                 .UseSwitch((ctx, m) => m.Request.ContentType,
                     new Dictionary<string, IBuilder<RequestContext, RequestContext>>
                     {

@@ -11,12 +11,15 @@ namespace RedPipes.Configuration
     /// <summary> Extension for building a pipe switch router </summary>
     public static class Switch
     {
+        /// <summary>  </summary>
+        public delegate void AddCase<in TKey, TValue>(TKey key, Func<IBuilder<TValue, TValue>, IBuilder<TValue, TValue>> pipe);
+
         /// <summary> Declares a pipe switch which routes execution based on a key extracted from the incoming context and data</summary>
         public static IBuilder<TIn, TOut> UseSwitch<TIn, TOut, TKey>(
             this IBuilder<TIn, TOut> builder,
             [NotNull] Func<IContext, TOut, TKey> selector,
             [NotNull] IReadOnlyDictionary<TKey, IBuilder<TOut, TOut>> cases,
-             IBuilder<TOut, TOut>? defaultCase = null,
+            IBuilder<TOut, TOut>? defaultCase = null,
             IEqualityComparer<TKey>? keyComparer = null,
             bool fallThrough = false,
             string? switchName = null) where TKey : notnull
@@ -33,6 +36,64 @@ namespace RedPipes.Configuration
 
             defaultCase ??= Builder.Unit<TOut>();
             return Builder.Join(builder, new Builder<TOut, TKey>(selector, cases, defaultCase, keyComparer, fallThrough, switchName));
+        }
+
+        /// <summary> Declares a pipe switch which routes execution based on a key extracted from the incoming context and data</summary>
+        public static IBuilder<TIn, TOut> UseSwitch<TIn, TOut, TKey>(
+            this IBuilder<TIn, TOut> builder,
+            [NotNull] Func<IContext, TOut, TKey> selector,
+            [NotNull] IEnumerable<(TKey, IBuilder<TOut, TOut>)> cases,
+            IBuilder<TOut, TOut>? defaultCase = null,
+            IEqualityComparer<TKey>? keyComparer = null,
+            bool fallThrough = false,
+            string? switchName = null) where TKey : notnull
+        {
+            if (selector == null)
+            {
+                throw new ArgumentNullException(nameof(selector));
+            }
+
+            if (cases == null)
+            {
+                throw new ArgumentNullException(nameof(cases));
+            }
+
+            defaultCase ??= Builder.Unit<TOut>();
+            return Builder.Join(builder, new Builder<TOut, TKey>(selector, cases.ToDictionary(x => x.Item1, x => x.Item2), defaultCase, keyComparer, fallThrough, switchName));
+        }
+
+
+        /// <summary> Declares a pipe switch which routes execution based on a key extracted from the incoming context and data</summary>
+        public static IBuilder<TIn, TOut> UseSwitch<TIn, TOut, TKey>(
+            this IBuilder<TIn, TOut> builder,
+            [NotNull] Func<IContext, TOut, TKey> selector,
+            [NotNull] Action<AddCase<TKey, TOut>> addCases,
+            IBuilder<TOut, TOut>? defaultCase = null,
+            IEqualityComparer<TKey>? keyComparer = null,
+            bool fallThrough = false,
+            string? switchName = null) where TKey : notnull
+        {
+            if (selector == null)
+            {
+                throw new ArgumentNullException(nameof(selector));
+            }
+
+            if (addCases == null)
+            {
+                throw new ArgumentNullException(nameof(addCases));
+            }
+
+            var dict = new ConcurrentDictionary<TKey, IBuilder<TOut, TOut>>();
+
+            void AddCase(TKey key, Func<IBuilder<TOut, TOut>, IBuilder<TOut, TOut>> build)
+            {
+                dict.TryAdd(key, build(Pipe.Builder<TOut>()));
+            }
+
+            addCases(AddCase);
+
+            defaultCase ??= Builder.Unit<TOut>();
+            return Builder.Join(builder, new Builder<TOut, TKey>(selector, dict, defaultCase, keyComparer, fallThrough, switchName));
         }
 
         class Builder<T, TKey> : Builder, IBuilder<T, T> where TKey : notnull
@@ -126,6 +187,7 @@ namespace RedPipes.Configuration
                     visitor.AddEdge(this, target, (Keys.Name, $"Case '{kv.Key}':"));
                     list.Add(target);
                 }
+
                 visitor.AddEdge(this, _defaultCase, (Keys.Name, $"Default:"));
                 list.Add(_defaultCase);
                 list.ForEach(p => p.Accept(visitor));
