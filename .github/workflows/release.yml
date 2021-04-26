@@ -3,7 +3,8 @@ name: Publish new release
 on:
   push:
     tags:
-    - "v[0-9]+.[0-9]+.[0-9]+"
+    - "v[0-9]+.[0-9]+.[0-9]"
+    - "v[0-9]+.[0-9]+.[0-9]-[0-9a-z]+"
 
 jobs:
   build:
@@ -38,7 +39,7 @@ jobs:
       run: >-
            dotnet pack
            --configuration Release
-           --no-build \
+           --no-build
            --output "${GITHUB_WORKSPACE}/artifacts"
            -p:Version=${VERSION}
            -p:RepositoryUrl="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
